@@ -4,4 +4,4 @@ Carpeta para trabajar en el proyecto de la segunda parte del curso MCFNL (Métod
 
 Programa para leer archivos .xmf: "paraview", https://www.paraview.org/
 
-No olvidar añadir "args": ["-i", "ruta a cavity2d.json"]
+No olvidar añadir "args": ["-i", "ruta a cavity2d.json"] al archivo launch.json que aparece al clicar en run/add configuartion... en Visual Studio Code
