@@ -1,4 +1,3 @@
-
 import json
 import argparse
 import os.path
@@ -39,7 +38,6 @@ xdmf = Xdmf(basename = caseName, format = "XML")
 
 for p in solver.getProbes():
     xdmf.add(p)
-    print(p['values'][0][1])
 
 open(xdmf.basename + ".xmf", "w+").write(xdmf.tostring().decode('utf-8'))
 
