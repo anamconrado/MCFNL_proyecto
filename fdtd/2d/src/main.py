@@ -35,8 +35,11 @@ print('--- Writing output files')
 (folder, file) = os.path.split(inputFilename)
 caseName = os.path.splitext(file)[0]
 xdmf = Xdmf(basename = caseName, format = "XML")
+
+
 for p in solver.getProbes():
     xdmf.add(p)
+    print(p['values'][0][1])
 
 open(xdmf.basename + ".xmf", "w+").write(xdmf.tostring().decode('utf-8'))
 
