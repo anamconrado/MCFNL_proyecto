@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 class View:
-    """ Ahora mismo no hace nada"""
+    """ Clase que permite visualizar los resultados de la simulación. """
 
     def __init__(self,datos):
         self.data = datos[0]
@@ -17,6 +17,6 @@ class View:
     def plot(self,time):
         X,Y = np.meshgrid(self.X_axis, self.Y_axis)
         Z = self.data['values'][time]
-        
+
         plt.contour(X, Y, Z)                           
         plt.show()
