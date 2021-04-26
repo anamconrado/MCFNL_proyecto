@@ -6,6 +6,7 @@ import sys
 from fdtd.xdmf import Xdmf
 from fdtd.mesh import Mesh
 from fdtd.solver import Solver
+from fdtd.viewer import View
 
 print("=== Python FDTD 2D")
 
@@ -29,6 +30,10 @@ solver = Solver(mesh, data["options"], data["probes"], data["sources"])
 
 print('--- Solving')
 solver.solve(data["options"]["finalTime"])
+
+print('--- Visualizing')
+view = View(solver.getProbes()) # Incio de un objeto de la clase View
+view.plot()
 
 print('--- Writing output files')
 (folder, file) = os.path.split(inputFilename)
