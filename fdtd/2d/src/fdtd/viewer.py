@@ -28,7 +28,6 @@ class View:
         # Grid de campo eléctrico Ex:
         self.data['mesh']["origine"] = [self.data['mesh']["origine"][0]\
              + self.data['mesh']['steps']/2, self.data['mesh']["origine"][1]] 
-
         self.exX_axis = [self.data['mesh']['origin'][0] + i*self.data['mesh']['steps'][0] \
             for i in range(0,self.Nhx)]
         """
