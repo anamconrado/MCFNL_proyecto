@@ -75,11 +75,11 @@ class Mesh:
         else:
             raise ValueError("Grid data must contain \"elemId\" or \"box\".")
 
-        (Lx, Ly) = abs(box[U] - box[L])
+        (Lx, Ly) = abs(box[U] - box[L]) # Da la longitud del grid restando las esquinas del rectángulo
         (dx, dy) = grid["steps"]
         self.pos =  \
-            (np.linspace(box[L][X], box[U][X], num=Lx/dx+1, endpoint=True),
-             np.linspace(box[L][Y], box[U][Y], num=Ly/dy+1, endpoint=True) )
+            (np.linspace(box[L][X], box[U][X], num=int(Lx/dx)+1, endpoint=True),
+             np.linspace(box[L][Y], box[U][Y], num=int(Ly/dy)+1, endpoint=True) )
 
         self.bounds = []
         if "bounds" in grid:
@@ -99,6 +99,7 @@ class Mesh:
     def elemIdToBox(self, id):
         return ( np.array(self.coordinates[ self.elements[id][0] ]), \
                  np.array(self.coordinates[ self.elements[id][1] ]) )
+    # Genera un rectángulo: una tupla con la esquina inferior izquiera como primer elemento y la esquina superior derecha como segundo
 
     def toIdx(self, coords):
         if type(coords) != tuple and type(coords) != list:
