@@ -31,9 +31,9 @@ solver = Solver(mesh, data["options"], data["probes"], data["sources"])
 print('--- Solving')
 solver.solve(data["options"]["finalTime"])
 
-print('--- Visualizing')
+print('--- Creating video')
 view = View(solver.getProbes()) # Incio de un objeto de la clase View
-view.plot()
+view.generate_video()
 
 print('--- Writing output files')
 (folder, file) = os.path.split(inputFilename)
