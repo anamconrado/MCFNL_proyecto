@@ -65,8 +65,7 @@ class Solver:
             box = self._mesh.elemIdToBox(source["elemId"])
             ids = mesh.toIdx(box)
             source["index"] = ids
-            
-
+        
         self.old = self.Fields(
             ex = np.zeros( (mesh.pos[X].size-1, mesh.pos[Y].size  ) ),
             ey = np.zeros( (mesh.pos[X].size,   mesh.pos[Y].size-1) ),
