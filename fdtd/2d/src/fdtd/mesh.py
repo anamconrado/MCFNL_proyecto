@@ -78,8 +78,8 @@ class Mesh:
         (Lx, Ly) = abs(box[U] - box[L])
         (dx, dy) = grid["steps"]
         self.pos =  \
-            (np.linspace(box[L][X], box[U][X], num=Lx/dx+1, endpoint=True),
-             np.linspace(box[L][Y], box[U][Y], num=Ly/dy+1, endpoint=True) )
+            (np.linspace(box[L][X], box[U][X], num=int(Lx/dx)+1, endpoint=True),
+             np.linspace(box[L][Y], box[U][Y], num=int(Ly/dy)+1, endpoint=True) )
 
         self.bounds = []
         if "bounds" in grid:
