@@ -66,5 +66,5 @@ timeline = amp.Timeline(t, fps=10)
 anim = amp.Animation([pcolormesh_block], timeline)
 anim.controls()
 
-anim.save_gif('multiblock')
+anim.save_gif('Gaussian')
 plt.show()
