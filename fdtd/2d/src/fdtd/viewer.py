@@ -1,6 +1,7 @@
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
+import matplotlib.colors as colors
 import numpy as np
+import matplotlib.pyplot as plt
+import animatplot as amp
 import copy
 
 class View:
@@ -44,19 +45,36 @@ class View:
         return self.data['values'][t]
 
     def generate_video(self, fields = "magnetic"):
-        
-        if fields == "magnetic":
-            X,Y = np.meshgrid(self.hzx,self.hzy)
-            fig = plt.figure()
-            ax1 = plt.axes(xlim=(self.hzx[0], self.hzx[-1]), ylim=(self.hzy[0], self.hzy[-1]))
-            ax1.set_title("Magnetic field Hz")        
-            
-            def animate(i):
-                Z = self.Ztimes(i)
-                ax1.collections = [] 
-                cont = plt.contourf(X, Y, Z, levels = 8)
-                return cont
-            
-            anim = animation.FuncAnimation(fig, animate, frames = self.Ntimes, interval = 50)
+        # Se crean arrays de indices para los ejes x e y y el tiempo: 
+        x_ind = range(0,len(self.hzx))
+        y_ind = range(0,len(self.hzy))
+        t_ind = range(0,len(self.data["time"]))
 
-            anim.save('Magnetic_field.mp4')
+        # Se crea un grid con los datos del tiempo y los ejes X e Y:
+        X, Y, _ = np.meshgrid(self.hzx,self.hzy,self.data["time"])
+
+        # Se crea una matriz pcolormesh_data con los datos correspondientes a cada punto del grid:
+        pcolormesh_data = np.array([np.array([np.array([self.data['values'][t][i][j]\
+             for t in t_ind]) for i in x_ind]) for j in y_ind])
+
+        # Se animan los datos:
+
+        plt.figure()
+
+        plt.xlabel('x')
+        plt.ylabel('y')
+        plt.title(r'$H_z}$')
+
+
+        # now we make our blocks
+        pcolormesh_block = amp.blocks.Pcolormesh(X[:,:,0], Y[:,:,0], pcolormesh_data,
+                                          t_axis=2,vmin = -0.05, vmax = 0.05)
+        plt.colorbar(pcolormesh_block.quad)
+        timeline = amp.Timeline(self.data["time"], fps=10)
+
+        # now to contruct the animation
+        anim = amp.Animation([pcolormesh_block], timeline)
+        anim.controls()
+
+        anim.save_gif('magnetic_field')
+        plt.show()
