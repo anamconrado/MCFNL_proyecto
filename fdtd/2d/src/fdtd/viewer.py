@@ -66,14 +66,16 @@ class View:
         X, Y, _ = np.meshgrid(self.x_axis,self.y_axis,self.data["time"])
 
         # Creating a figure for visualization
-        plt.figure()
 
-        plt.xlabel('x')
-        plt.ylabel('y')
-        
 
         if fields == 'magnetic':
-            # Se crea una matriz pcolormesh_data con los datos correspondientes a cada punto del grid:
+            plt.figure()
+
+            plt.xlabel('x')
+            plt.ylabel('y')
+        
+
+            # pcolormesh_data matrix with magnited field values.
             pcolormesh_data = np.array([np.array([np.array([self.data['values'][t][i][j]\
                 for t in t_ind]) for i in x_ind]) for j in y_ind])
 
@@ -82,7 +84,7 @@ class View:
             # Animation        
             # now we make our blocks
             pcolormesh_block = amp.blocks.Pcolormesh(X[:,:,0], Y[:,:,0], pcolormesh_data,
-                                          t_axis=2,vmin = -0.05, vmax = 0.05, cmap='RdBu')
+                                          t_axis=2,vmin = -0.05, vmax = 0.05)
             plt.colorbar(pcolormesh_block.quad)
             timeline = amp.Timeline([i*(10**9) for i in self.data["time"]], fps=30, units='ns')
 
@@ -90,11 +92,15 @@ class View:
             anim = amp.Animation([pcolormesh_block], timeline)
             anim.controls()
 
-            anim.save('videos/magnetic_Z_field.mp4')
+            anim.save('videos/magnetic_z_field.mp4')
             plt.show()
 
         elif fields == 'electric':
-            pcolormesh_data = np.array([np.array([np.array([self.data['valuese'][t][i][j]\
+            plt.figure()
+            plt.xlabel('x')
+            plt.ylabel('y')
+
+            pcolormesh_data = np.array([np.array([np.array([self.data['valuese_mod'][t][i][j]\
                 for t in t_ind]) for i in x_ind]) for j in y_ind])      
 
             plt.title(r'${ \left | \vec E \right | }$')  
@@ -102,7 +108,7 @@ class View:
             #Animation   
             # now we make our blocks
             pcolormesh_block = amp.blocks.Pcolormesh(X[:,:,0], Y[:,:,0], pcolormesh_data,
-                                          t_axis=2,vmin = 0, vmax = 0.05, cmap='RdBu')
+                                          t_axis=2,vmin = 0, vmax = 0.05)
             plt.colorbar(pcolormesh_block.quad)
             timeline = amp.Timeline([i*(10**9) for i in self.data["time"]], fps=30, units='ns')
 
@@ -112,6 +118,43 @@ class View:
 
             anim.save('videos/electric_field_magnitude.mp4')
             plt.show() 
+        
+        elif fields == 'both':
+            fig, (ax1, ax2) = plt.subplots(2,1)
+
+            for i in [ax1,ax2]:
+                i.set_ylabel('y')
+                
+            ax2.set_xlabel('x')
+            ax1.set_title (r'$ H_z $')
+            ax2.set_title(r'$ \left | \vec E \right | $')
+
+            pcolormesh_data_e = np.array([np.array([np.array([self.data['valuese_mod'][t][i][j]\
+                for t in t_ind]) for i in x_ind]) for j in y_ind])      
+
+            pcolormesh_data_m = np.array([np.array([np.array([self.data['values'][t][i][j]\
+                for t in t_ind]) for i in x_ind]) for j in y_ind])
+
+            fig.suptitle(r'${ \left | \vec E \right | \ & \ H_z }$')  
+
+            #Animation   
+            # now we make our blocks
+            pcolormesh_block_e = amp.blocks.Pcolormesh(X[:,:,0], Y[:,:,0], pcolormesh_data_e,
+                                          ax=ax2, t_axis=2,vmin = 0, vmax = 0.05)
+            pcolormesh_block_m = amp.blocks.Pcolormesh(X[:,:,0], Y[:,:,0], pcolormesh_data_m,
+                                          ax=ax1, t_axis=2,vmin = -0.05, vmax = 0.05)                                    
+
+            plt.colorbar(pcolormesh_block_e.quad, ax = ax2)
+            plt.colorbar(pcolormesh_block_m.quad, ax = ax1)
+            timeline = amp.Timeline([i*(10**9) for i in self.data["time"]], fps=30, units='ns')
+
+            # now to contruct the animation
+            anim = amp.Animation([pcolormesh_block_m,pcolormesh_block_e], timeline)
+            anim.controls()
+
+            anim.save('videos/electric_magnitude_&_magnetic_z.mp4')
+            plt.show()                         
+        else: raise Exception("Input must be 'magnetic', 'electric' or 'both'")
 
 
 

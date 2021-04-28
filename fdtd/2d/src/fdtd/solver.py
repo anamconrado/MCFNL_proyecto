@@ -53,7 +53,9 @@ class Solver:
             p["indices"] = ids
             p["time"]   = [0.0]
             p["values"] = [np.zeros((Nxy[X], Nxy[Y]))]
-            p["valuese"] = [np.zeros((Nxy[X], Nxy[Y]))]
+            p["valuese_mod"] = [np.zeros((Nxy[X], Nxy[Y]))]
+            p["valuese_x"] = [np.zeros((Nxy[X], Nxy[Y]))]
+            p["valuese_y"] = [np.zeros((Nxy[X], Nxy[Y]))]
 
         # for initial in self._initialCond:
         #     if initial["type"] == "gaussian":
@@ -215,7 +217,9 @@ class Solver:
                 for i in range(0,self.old.ey.shape[0]-1)])
 
                 p["values"].append(values)
-                p["valuese"].append(np.array([list(map(lambda x,y: np.sqrt(x**2 +y**2), valuesex[i], valuesey[i])) for i in range(0,len(valuesex))]))
+                p["valuese_mod"].append(np.array([list(map(lambda x,y: np.sqrt(x**2 +y**2), valuesex[i], valuesey[i])) for i in range(0,len(valuesex))]))
+                p["valuese_x"].append(valuesex)
+                p["valuese_y"].append(valuesey)
 
 
     def solve(self, dimensionalFinalTime):
