@@ -84,7 +84,7 @@ class View:
             pcolormesh_block = amp.blocks.Pcolormesh(X[:,:,0], Y[:,:,0], pcolormesh_data,
                                           t_axis=2,vmin = -0.05, vmax = 0.05, cmap='RdBu')
             plt.colorbar(pcolormesh_block.quad)
-            timeline = amp.Timeline([i*(10**9) for i in self.data["time"]], fps=50, units='ns')
+            timeline = amp.Timeline([i*(10**9) for i in self.data["time"]], fps=30, units='ns')
 
             # now to contruct the animation
             anim = amp.Animation([pcolormesh_block], timeline)
@@ -104,7 +104,7 @@ class View:
             pcolormesh_block = amp.blocks.Pcolormesh(X[:,:,0], Y[:,:,0], pcolormesh_data,
                                           t_axis=2,vmin = 0, vmax = 0.05, cmap='RdBu')
             plt.colorbar(pcolormesh_block.quad)
-            timeline = amp.Timeline([i*(10**9) for i in self.data["time"]], fps=50, units='ns')
+            timeline = amp.Timeline([i*(10**9) for i in self.data["time"]], fps=30, units='ns')
 
             # now to contruct the animation
             anim = amp.Animation([pcolormesh_block], timeline)
