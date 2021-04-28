@@ -34,7 +34,8 @@ solver.solve(data["options"]["finalTime"])
 
 print('--- Measuring')
 measures = Measures(mesh, solver.getProbes(), data["measures"])
-R = measures.R()
+R = measures.R_f()
+T = measures.T_f()
 
 print('--- Creating video')
 view = View(solver.getProbes()) # Incio de un objeto de la clase View
