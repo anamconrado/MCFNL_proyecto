@@ -33,7 +33,7 @@ solver.solve(data["options"]["finalTime"])
 
 print('--- Creating video')
 view = View(solver.getProbes()) # Incio de un objeto de la clase View
-view.generate_video()
+view.generate_video('electric')
 
 print('--- Writing output files')
 (folder, file) = os.path.split(inputFilename)

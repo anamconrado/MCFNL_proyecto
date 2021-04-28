@@ -53,6 +53,7 @@ class Solver:
             p["indices"] = ids
             p["time"]   = [0.0]
             p["values"] = [np.zeros((Nxy[X], Nxy[Y]))]
+            p["valuese"] = [np.zeros((Nxy[X], Nxy[Y]))]
 
         # for initial in self._initialCond:
         #     if initial["type"] == "gaussian":
@@ -182,7 +183,40 @@ class Solver:
                 values = np.zeros(tuple(idx[U]-idx[L]))
                 values[:,:] = \
                     self.old.hz[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ]
+                
+                """
+                # Ex values without first raw    
+                valuesexup = \
+                    self.old.ex[ idx[L][X]:idx[U][X], (idx[L][Y]+1):(idx[U][Y]+1) ]
+                # Ex values without last raw
+                valuesexdown = \
+                    self.old.ex[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ]
+                """
+
+                # Mean values, Ex same position as Hz
+                valuesex = np.array([list(map(lambda x, y: (x+y)/2,\
+                self.old.ex[ idx[L][X]:idx[U][X], (idx[L][Y]+1):(idx[U][Y]+1) ][i],\
+                self.old.ex[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ][i]))\
+                for i in range(0,self.old.ex.shape[0])])
+                
+                """
+                # Ey values without first column
+                valueseyright = \
+                    self.old.ey[ (idx[L][X]+1):(idx[U][X]+1), idx[L][Y]:idx[U][Y] ]
+                # Ey values without last comlumn
+                valueseyleft = \
+                    self.old.ey[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ]
+                """
+
+                # Mean values, Ey same position as Hz
+                valuesey = np.array([list(map(lambda x, y: (x+y)/2,\
+                self.old.ey[ (idx[L][X]+1):(idx[U][X]+1), idx[L][Y]:idx[U][Y] ][i],\
+                self.old.ey[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ][i]))\
+                for i in range(0,self.old.ey.shape[0]-1)])
+
                 p["values"].append(values)
+                p["valuese"].append(np.array([list(map(lambda x,y: np.sqrt(x**2 +y**2), valuesex[i], valuesey[i])) for i in range(0,len(valuesex))]))
+
 
     def solve(self, dimensionalFinalTime):
         tic = time.time()
