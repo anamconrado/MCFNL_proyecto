@@ -13,6 +13,12 @@ U = 1 # Upper
 def gaussian(x, delay, spread):
     return np.exp( - ((x-delay)**2 / (2*spread**2)) )
 
+def sins(x, intens, long):
+    return intens*np.sin(np.pi*x/long)
+
+def step(x, xlim):
+    return x<xlim
+
 def subsId(id):
     if id is None:
         return -1
@@ -135,6 +141,27 @@ class Solver:
                     id = source["index"]
                     hNew[id[L][X]:id[U][X], id[L][Y]:id[U][Y]] += \
                      gaussian(t, delay, spread)*dt
+
+                elif magnitude["type"] == "TMgauss":
+                    c0 = sp.speed_of_light
+                    delay  = c0 * magnitude["gaussianDelay"]
+                    spread = c0 * magnitude["gaussianSpread"]
+                    id = source["index"]
+                    intens = magnitude["sinIntensity"]
+                    lon_y = id[U][Y] - id[L][Y]
+                    middle_x = int((id[U][X] - id[L][X])/2 + id[L][X])
+                    hNew[middle_x, id[L][Y]:id[U][Y]] += \
+                     sins(np.arange(lon_y), intens, lon_y) * gaussian(t, delay, spread) * dt
+
+                elif magnitude["type"] == "TMstep":
+                    id = source["index"]
+                    intens = magnitude["sinIntensity"]
+                    tlim = magnitude["stepTimeLimit"]
+                    lon_y = id[U][Y] - id[L][Y]
+                    middle_x = int((id[U][X] - id[L][X])/2 + id[L][X])
+                    hNew[middle_x, id[L][Y]:id[U][Y]] += \
+                     sins(np.arange(lon_y), intens, lon_y) * step(t, tlim) * dt
+                     
                 else:
                     raise ValueError(\
                     "Invalid source magnitude type: " + magnitude["type"])
