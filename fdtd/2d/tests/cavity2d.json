@@ -37,11 +37,13 @@
     "sources": [
         {
             "type": "dipole", 
-            "direction": [0.0, 0.0, 1.0],
+            "direction": [1.0, 0.0, 0.0],
             "magnitude": {
-                "type": "gaussian",
+                "type": "TMstep",
                 "gaussianDelay": 8e-9,
-                "gaussianSpread": 1e-9
+                "gaussianSpread": 1e-9,
+                "sinIntensity": 2,
+                "stepTimeLimit": 1
             },
             "elemId": 2
         }
