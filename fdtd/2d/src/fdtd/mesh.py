@@ -92,7 +92,6 @@ class Mesh:
     def steps(self):
         return (self.pos[X][1]-self.pos[X][0], self.pos[Y][1]-self.pos[Y][0])
 
-
     def origin(self):
         return (self.pos[X][0], self.pos[Y][0])
 
