@@ -5,7 +5,7 @@ import animatplot as amp
 import copy
 
 class View:
-    """ Clase que permite visualizar los resultados de la simulación. """
+    """ Allows the visualization of simulation results. """
 
     def __init__(self, datos):
         self.data = copy.deepcopy(datos[0])
@@ -14,8 +14,8 @@ class View:
         self.Nhzy = len(self.data['values'][0][0]) # Cantidad de datos en el eje Y
      
 
-        # Grid de campo magnético Hz
-          # Origen de campo magnético
+        # Z-component magnetic field (Hz) grid
+          # Magnetic field origen.
         self.data['mesh']['originh'] = [self.data['mesh']['origin'][0] + self.data['mesh']['steps'][0]/2, \
             self.data['mesh']['origin'][1] + self.data['mesh']['steps'][0]/2]
 
@@ -35,6 +35,11 @@ class View:
 
 
     def plot(self, time, fields = "magnetic"):
+        """ Plots a snapshot of the input field at the input time:
+        Inputs:
+        | - time: whatever value between 0 and finalTime. 
+        | - fields: must be 'magnetic': plots Hz;'electric': plots de module of the elctric
+        |field or 'both': plots both at the same time."""
         X,Y = np.meshgrid(self.hzx,self.hzy)
         Z = self.data['values'][time]
 
@@ -45,6 +50,12 @@ class View:
         return self.data['values'][t]
 
     def generate_video(self, fields = "magnetic"):
+        """ Generates a visualization of the dynamics of the input field and writes a gif
+        archive as output:
+        Inputs:
+        | - fields: must be 'magnetic': plots Hz;'electric': plots de module of the elctric
+        |field or 'both': plots both at the same time."""
+
         # Se crean arrays de indices para los ejes x e y y el tiempo: 
         x_ind = range(0,len(self.hzx))
         y_ind = range(0,len(self.hzy))
@@ -68,7 +79,7 @@ class View:
 
         # now we make our blocks
         pcolormesh_block = amp.blocks.Pcolormesh(X[:,:,0], Y[:,:,0], pcolormesh_data,
-                                          t_axis=2,vmin = -0.05, vmax = 0.05)
+                                          t_axis=2,vmin = -0.05, vmax = 0.05, cmap='RdBu')
         plt.colorbar(pcolormesh_block.quad)
         timeline = amp.Timeline([i*(10**9) for i in self.data["time"]], fps=50, units='ns')
 
@@ -76,5 +87,5 @@ class View:
         anim = amp.Animation([pcolormesh_block], timeline)
         anim.controls()
 
-        anim.save_gif('magnetic_field')
+        anim.save('videos/magnetic_field.mp4')
         plt.show()
