@@ -152,6 +152,7 @@ class View:
             anim = amp.Animation([pcolormesh_block_m,pcolormesh_block_e], timeline)
             anim.controls()
 
+            # Change if windows.
             anim.save('videos/electric_magnitude_&_magnetic_z.mp4')
             plt.show()                         
         else: raise Exception("Input must be 'magnetic', 'electric' or 'both'")
