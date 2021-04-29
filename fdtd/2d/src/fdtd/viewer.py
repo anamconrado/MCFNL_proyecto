@@ -100,7 +100,7 @@ class View:
             plt.xlabel('x')
             plt.ylabel('y')
 
-            pcolormesh_data = np.array([np.array([np.array([self.data['valuese_mod'][t][i][j]\
+            pcolormesh_data = np.array([np.array([np.array([self.data['valuese_x'][t][i][j]\
                 for t in t_ind]) for i in x_ind]) for j in y_ind])      
 
             plt.title(r'${ \left | \vec E \right | }$')  
@@ -127,20 +127,20 @@ class View:
                 
             ax2.set_xlabel('x')
             ax1.set_title (r'$ H_z $')
-            ax2.set_title(r'$ \left | \vec E \right | $')
+            ax2.set_title(r'$  \vec {E_x} \right | $')
 
-            pcolormesh_data_e = np.array([np.array([np.array([self.data['valuese_mod'][t][i][j]\
+            pcolormesh_data_e = np.array([np.array([np.array([self.data['valuese_x'][t][i][j]\
                 for t in t_ind]) for i in x_ind]) for j in y_ind])      
 
             pcolormesh_data_m = np.array([np.array([np.array([self.data['values'][t][i][j]\
                 for t in t_ind]) for i in x_ind]) for j in y_ind])
 
-            fig.suptitle(r'${ \left | \vec E \right | \ & \ H_z }$')  
+            fig.suptitle(r'${  \vec {E_x}  \ & \ H_z }$')  
 
             #Animation   
             # now we make our blocks
             pcolormesh_block_e = amp.blocks.Pcolormesh(X[:,:,0], Y[:,:,0], pcolormesh_data_e,
-                                          ax=ax2, t_axis=2,vmin = 0, vmax = 0.05)
+                                          ax=ax2, t_axis=2,vmin = -0.05, vmax = 0.05)
             pcolormesh_block_m = amp.blocks.Pcolormesh(X[:,:,0], Y[:,:,0], pcolormesh_data_m,
                                           ax=ax1, t_axis=2,vmin = -0.05, vmax = 0.05)                                    
 

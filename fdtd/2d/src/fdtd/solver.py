@@ -16,6 +16,9 @@ def gaussian(x, delay, spread):
 def sins(x, intens, long):
     return intens*np.sin(np.pi*x/long)
 
+def coss(x, intens, long):
+    return intens*np.cos(np.pi*x/long)
+
 def step(x, xlim):
     return x<xlim
 
@@ -103,6 +106,43 @@ class Solver:
         eNew[X][:,1:-1] = e[X][:,1:-1] + dt/A*dX * (h[:,1:] - h[:,:-1])
         eNew[Y][1:-1,:] = e[Y][1:-1,:] - dt/A*dY * (h[1:,:] - h[:-1,:])
 
+        # Source terms
+        for source in self._sources:
+            if source["type"] == "dipole":
+                magnitude = source["magnitude"]
+                if magnitude["type"] == "gaussian": # No hace nada
+                    break
+
+                elif magnitude["type"] == "TMgauss":
+                    c0 = sp.speed_of_light
+                    delay  = c0 * magnitude["gaussianDelay"]
+                    spread = c0 * magnitude["gaussianSpread"]
+                    id = source["index"]
+                    intens = magnitude["sinIntensity"]
+                    lon_y = id[U][Y] - id[L][Y]
+                    middle_x = int((id[U][X] - id[L][X])/2 + id[L][X])
+                    eNew[X][middle_x, id[L][Y]:id[U][Y]] += \
+                     sins(np.arange(lon_y), intens, lon_y) * gaussian(t, delay, spread) * dt
+                    eNew[Y][middle_x, id[L][Y]:id[U][Y]] += \
+                     coss(np.arange(lon_y), intens, lon_y) * gaussian(t, delay, spread) * dt
+
+                elif magnitude["type"] == "TMstep":
+                    id = source["index"]
+                    intens = magnitude["sinIntensity"]
+                    tlim = magnitude["stepTimeLimit"]
+                    lon_y = id[U][Y] - id[L][Y]
+                    middle_x = int((id[U][X] - id[L][X])/2 + id[L][X])
+                    eNew[X][middle_x, id[L][Y]:id[U][Y]] += \
+                     sins(np.arange(lon_y), intens, lon_y) * step(t, tlim * dt) 
+                    eNew[Y][middle_x, id[L][Y]:id[U][Y]] += \
+                     coss(np.arange(lon_y), intens, lon_y) * step(t, tlim * dt) 
+                     
+                else:
+                    raise ValueError(\
+                    "Invalid source magnitude type: " + magnitude["type"])
+            else:
+                raise ValueError("Invalid source type: " + source["type"])
+
         # Boundary conditions
         for bound in self._mesh.bounds:
             xy = bound.orientation()
@@ -110,8 +150,25 @@ class Solver:
                         bound.arrayIdx(U,X))
             (ly, uy) = (bound.arrayIdx(L,Y), \
                         bound.arrayIdx(U,Y))
+            #print(lx, ux, ly, ux)
+
             if isinstance(bound, self._mesh.BoundPEC):
                 eNew[xy][lx:ux,ly:uy] = 0.0
+
+#            elif isinstance(bound, self._mesh.BoundMUR):
+#                c0 = sp.speed_of_light
+#                dx = self._mesh.steps()
+#                if ind[0] == 0:
+#                    eNew[X][0,:] = e[X][1,:] + \
+#                       (c0 * dt - dx)/(c0 * dt + dx)  * (eNew[X][1,:]-e[X][0,:])
+#                    eNew[Y][0,:] = e[Y][1,:] + \
+#                       (c0 * dt - dx)/(c0 * dt + dx)  * (eNew[Y][1,:]-e[Y][0,:]) 
+#                elif ind[0] == -1:
+#                    eNew[X][ind,:] = e[X][ind-1,:] + \
+#                       (c0 * dt - dx)/(c0 * dt + dx)  * (eNew[X][ind-1,:]-e[X][ind,:])
+#                    eNew[Y][ind,:] = e[Y][ind-1,:] + \
+#                       (c0 * dt - dx)/(c0 * dt + dx)  * (eNew[Y][ind-1,:]-e[Y][ind,:])
+            
             else:
                 raise ValueError("Unrecognized boundary type")
         
@@ -154,7 +211,7 @@ class Solver:
                     lon_y = id[U][Y] - id[L][Y]
                     middle_x = int((id[U][X] - id[L][X])/2 + id[L][X])
                     hNew[middle_x, id[L][Y]:id[U][Y]] += \
-                     sins(np.arange(lon_y), intens, lon_y) * gaussian(t, delay, spread) * dt
+                     coss(np.arange(lon_y), intens, lon_y) * gaussian(t, delay, spread) * dt
 
                 elif magnitude["type"] == "TMstep":
                     id = source["index"]
@@ -163,7 +220,7 @@ class Solver:
                     lon_y = id[U][Y] - id[L][Y]
                     middle_x = int((id[U][X] - id[L][X])/2 + id[L][X])
                     hNew[middle_x, id[L][Y]:id[U][Y]] += \
-                     sins(np.arange(lon_y), intens, lon_y) * step(t, tlim) * dt
+                     coss(np.arange(lon_y), intens, lon_y) * step(t, tlim * dt) 
                      
                 else:
                     raise ValueError(\
@@ -172,7 +229,7 @@ class Solver:
                 raise ValueError("Invalid source type: " + source["type"])
         
         h[:] = hNew[:]
-            
+
     def _updateProbes(self, t):
         for p in self._probes:
             dimensionalTime = t/sp.speed_of_light
