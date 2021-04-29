@@ -13,11 +13,11 @@ U = 1 # Upper
 def gaussian(x, delay, spread):
     return np.exp( - ((x-delay)**2 / (2*spread**2)) )
 
-def sins(x, intens, long):
-    return intens*np.sin(np.pi*x/long)
+def siny(x, n, intens, long):
+    return intens*np.sin(np.pi*x*n/long)
 
-def coss(x, intens, long):
-    return intens*np.cos(np.pi*x/long)
+def cosy(x, n, intens, long):
+    return intens*np.cos(np.pi*x*n/long)
 
 def step(x, xlim):
     return x<xlim
@@ -41,7 +41,7 @@ class Solver:
 
     __timeStepPrint = 5000
 
-    def __init__(self, mesh, options, probes, sources):
+    def __init__(self, mesh, options, probes, sources, material):
         self.options = options
         
         self._mesh = copy.deepcopy(mesh)
@@ -77,6 +77,8 @@ class Solver:
             box = self._mesh.elemIdToBox(source["elemId"])
             ids = mesh.toIdx(box)
             source["index"] = ids
+
+        self._material = copy.deepcopy(material)
         
         self.old = self.Fields(
             ex = np.zeros( (mesh.pos[X].size-1, mesh.pos[Y].size  ) ),
@@ -114,6 +116,9 @@ class Solver:
                     break
 
                 elif magnitude["type"] == "TMgauss":
+                    mode = source["mode"]
+                    freq = source["frequency"]
+
                     c0 = sp.speed_of_light
                     delay  = c0 * magnitude["gaussianDelay"]
                     spread = c0 * magnitude["gaussianSpread"]
@@ -121,21 +126,36 @@ class Solver:
                     intens = magnitude["sinIntensity"]
                     lon_y = id[U][Y] - id[L][Y]
                     middle_x = int((id[U][X] - id[L][X])/2 + id[L][X])
+
+                    epsilon = self._material["epsilon"]
+                    mu = self._material["mu"]
+                    kc = mode*np.pi/lon_y
+                    beta = np.sqrt(freq**2*mu*epsilon - kc**2)
+
                     eNew[X][middle_x, id[L][Y]:id[U][Y]] += \
-                      sins(np.arange(lon_y), intens, lon_y) * gaussian(t, delay, spread) 
-                    # eNew[Y][middle_x, id[L][Y]:id[U][Y]] += \
-                    #  coss(np.arange(lon_y), intens, lon_y) * gaussian(t, delay, spread) 
+                     siny(beta*np.arange(lon_y), mode, intens, lon_y) * np.cos(freq*t) * gaussian(t, delay, spread) * dt
+                    eNew[Y][middle_x, id[L][Y]:id[U][Y]] += \
+                     beta/kc * cosy(beta*np.arange(lon_y), mode, intens, lon_y) * np.sin(freq*t) * gaussian(t, delay, spread) * dt
 
                 elif magnitude["type"] == "TMstep":
+                    mode = source["mode"]
+                    freq = source["frequency"]
+
                     id = source["index"]
                     intens = magnitude["sinIntensity"]
                     tlim = magnitude["stepTimeLimit"]
                     lon_y = id[U][Y] - id[L][Y]
                     middle_x = int((id[U][X] - id[L][X])/2 + id[L][X])
+
+                    epsilon = self._material["epsilon"]
+                    mu = self._material["mu"]
+                    kc = mode*np.pi/lon_y
+                    beta = np.sqrt(freq**2*mu*epsilon - kc**2)
+
                     eNew[X][middle_x, id[L][Y]:id[U][Y]] += \
-                     sins(np.arange(lon_y), intens, lon_y) * step(t, tlim * dt) 
+                     siny(beta*np.arange(lon_y), mode, intens, lon_y) * np.cos(freq*t) * step(t, tlim * dt) 
                     eNew[Y][middle_x, id[L][Y]:id[U][Y]] += \
-                     coss(np.arange(lon_y), intens, lon_y) * step(t, tlim * dt) 
+                     beta/kc * cosy(np.arange(lon_y), mode, intens, lon_y) * np.sin(freq*t) * step(t, tlim * dt) 
                      
                 else:
                     raise ValueError(\
@@ -203,6 +223,9 @@ class Solver:
                      gaussian(t, delay, spread)*dt
 
                 elif magnitude["type"] == "TMgauss":
+                    mode = source["mode"]
+                    freq = source["frequency"]
+
                     c0 = sp.speed_of_light
                     delay  = c0 * magnitude["gaussianDelay"]
                     spread = c0 * magnitude["gaussianSpread"]
@@ -210,17 +233,32 @@ class Solver:
                     intens = magnitude["sinIntensity"]
                     lon_y = id[U][Y] - id[L][Y]
                     middle_x = int((id[U][X] - id[L][X])/2 + id[L][X])
+
+                    epsilon = self._material["epsilon"]
+                    mu = self._material["mu"]
+                    kc = mode*np.pi/lon_y
+                    beta = np.sqrt(freq**2*mu*epsilon - kc**2)
+
                     hNew[middle_x, id[L][Y]:id[U][Y]] += \
-                     coss(np.arange(lon_y), intens, lon_y) * gaussian(t, delay, spread) 
+                     -freq*epsilon/kc * cosy(beta*np.arange(lon_y), mode, intens, lon_y) * np.sin(freq*t) * gaussian(t, delay, spread) * dt
 
                 elif magnitude["type"] == "TMstep":
+                    mode = source["mode"]
+                    freq = source["frequency"]
+
                     id = source["index"]
                     intens = magnitude["sinIntensity"]
                     tlim = magnitude["stepTimeLimit"]
                     lon_y = id[U][Y] - id[L][Y]
                     middle_x = int((id[U][X] - id[L][X])/2 + id[L][X])
+
+                    epsilon = self._material["epsilon"]
+                    mu = self._material["mu"]
+                    kc = mode*np.pi/lon_y
+                    beta = np.sqrt(freq**2*mu*epsilon - kc**2)
+
                     hNew[middle_x, id[L][Y]:id[U][Y]] += \
-                     coss(np.arange(lon_y), intens, lon_y) * step(t, tlim * dt * 10)  
+                    -freq*epsilon/kc * cosy(beta*np.arange(lon_y), mode, intens, lon_y) * np.sin(freq*t) * step(t, tlim * dt) 
                      
                 else:
                     raise ValueError(\
@@ -244,50 +282,39 @@ class Solver:
                     self.old.hz[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ]
                 
                 """
-                # Module representation
                 # Ex values without first raw    
                 valuesexup = \
                     self.old.ex[ idx[L][X]:idx[U][X], (idx[L][Y]+1):(idx[U][Y]+1) ]
                 # Ex values without last raw
                 valuesexdown = \
                     self.old.ex[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ]
-            
+                """
 
                 # Mean values, Ex same position as Hz
                 valuesex = np.array([list(map(lambda x, y: (x+y)/2,\
                 self.old.ex[ idx[L][X]:idx[U][X], (idx[L][Y]+1):(idx[U][Y]+1) ][i],\
                 self.old.ex[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ][i]))\
                 for i in range(0,self.old.ex.shape[0])])
-                """
-
-                valuesex = np.zeros(tuple(idx[U]-idx[L]))
-                valuesex[:,:] = self.old.ex[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ]
                 
                 """
-                # Module representation
                 # Ey values without first column
                 valueseyright = \
                     self.old.ey[ (idx[L][X]+1):(idx[U][X]+1), idx[L][Y]:idx[U][Y] ]
                 # Ey values without last comlumn
                 valueseyleft = \
                     self.old.ey[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ]
-                
+                """
 
                 # Mean values, Ey same position as Hz
                 valuesey = np.array([list(map(lambda x, y: (x+y)/2,\
                 self.old.ey[ (idx[L][X]+1):(idx[U][X]+1), idx[L][Y]:idx[U][Y] ][i],\
                 self.old.ey[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ][i]))\
                 for i in range(0,self.old.ey.shape[0]-1)])
-                """
 
-                valuesey = np.zeros(tuple(idx[U]-idx[L]))
-                valuesey[:,:] = self.old.ey[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ]
-                
                 p["values"].append(values)
-                # p["valuese_mod"].append(np.array([list(map(lambda x,y: np.sqrt(x**2 +y**2), valuesex[i], valuesey[i])) for i in range(0,len(valuesex))]))
+                p["valuese_mod"].append(np.array([list(map(lambda x,y: np.sqrt(x**2 +y**2), valuesex[i], valuesey[i])) for i in range(0,len(valuesex))]))
                 p["valuese_x"].append(valuesex)
                 p["valuese_y"].append(valuesey)
-                
 
 
     def solve(self, dimensionalFinalTime):

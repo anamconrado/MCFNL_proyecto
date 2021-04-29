@@ -2,15 +2,15 @@
     "_format": "pyfdtd2d",
     
     "options": {
-        "finalTime": 10e-9,
+        "finalTime": 20e-9,
         "cfl": 0.8
     },
 
     "coordinates": [
         [ 0.0,  0.0], 
         [ 5.0,  2.5],
-        [ 2.0,  0.0],
-        [ 2.05, 2.5],
+        [ 1.0,  0.0],
+        [ 1.05, 2.5],
         [ 4.5,  0.0],
         [ 4.55,  2.5],
         [ 0.5,  0.0],
@@ -34,10 +34,17 @@
         ]
     },
 
+    "material":{
+        "epsilon": 1,
+        "mu": 1
+    },
+
     "sources": [
         {
             "type": "dipole", 
             "direction": [1.0, 0.0, 0.0],
+            "frequency": 1,
+            "mode": 1,
             "magnitude": {
                 "type": "TMstep",
                 "gaussianDelay": 8e-9,
