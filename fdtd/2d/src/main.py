@@ -7,6 +7,7 @@ from fdtd.xdmf import Xdmf
 from fdtd.mesh import Mesh
 from fdtd.solver import Solver
 from fdtd.viewer import View
+from fdtd.measures import Measures
 
 print("=== Python FDTD 2D")
 
@@ -31,9 +32,14 @@ solver = Solver(mesh, data["options"], data["probes"], data["sources"])
 print('--- Solving')
 solver.solve(data["options"]["finalTime"])
 
+print('--- Measuring')
+measures = Measures(mesh, solver.getProbes(), data["measures"])
+R = measures.R_f()
+T = measures.T_f()
+
 print('--- Creating video')
 view = View(solver.getProbes()) # Incio de un objeto de la clase View
-view.generate_video()
+view.generate_video('all')
 
 print('--- Writing output files')
 (folder, file) = os.path.split(inputFilename)
