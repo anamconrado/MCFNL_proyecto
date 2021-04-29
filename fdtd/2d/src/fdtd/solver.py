@@ -121,10 +121,10 @@ class Solver:
                     intens = magnitude["sinIntensity"]
                     lon_y = id[U][Y] - id[L][Y]
                     middle_x = int((id[U][X] - id[L][X])/2 + id[L][X])
-                    eNew[X][middle_x, id[L][Y]:id[U][Y]] += \
-                     sins(np.arange(lon_y), intens, lon_y) * gaussian(t, delay, spread) * dt
-                    eNew[Y][middle_x, id[L][Y]:id[U][Y]] += \
-                     coss(np.arange(lon_y), intens, lon_y) * gaussian(t, delay, spread) * dt
+                    # eNew[X][middle_x, id[L][Y]:id[U][Y]] += \
+                    #  sins(np.arange(lon_y), intens, lon_y) * gaussian(t, delay, spread) 
+                    # eNew[Y][middle_x, id[L][Y]:id[U][Y]] += \
+                    #  coss(np.arange(lon_y), intens, lon_y) * gaussian(t, delay, spread) 
 
                 elif magnitude["type"] == "TMstep":
                     id = source["index"]
@@ -132,10 +132,10 @@ class Solver:
                     tlim = magnitude["stepTimeLimit"]
                     lon_y = id[U][Y] - id[L][Y]
                     middle_x = int((id[U][X] - id[L][X])/2 + id[L][X])
-                    eNew[X][middle_x, id[L][Y]:id[U][Y]] += \
-                     sins(np.arange(lon_y), intens, lon_y) * step(t, tlim * dt) 
-                    eNew[Y][middle_x, id[L][Y]:id[U][Y]] += \
-                     coss(np.arange(lon_y), intens, lon_y) * step(t, tlim * dt) 
+                    #eNew[X][middle_x, id[L][Y]:id[U][Y]] += \
+                    # sins(np.arange(lon_y), intens, lon_y) * step(t, tlim * dt) 
+                    #eNew[Y][middle_x, id[L][Y]:id[U][Y]] += \
+                    # coss(np.arange(lon_y), intens, lon_y) * step(t, tlim * dt) 
                      
                 else:
                     raise ValueError(\
@@ -211,7 +211,7 @@ class Solver:
                     lon_y = id[U][Y] - id[L][Y]
                     middle_x = int((id[U][X] - id[L][X])/2 + id[L][X])
                     hNew[middle_x, id[L][Y]:id[U][Y]] += \
-                     coss(np.arange(lon_y), intens, lon_y) * gaussian(t, delay, spread) * dt
+                     coss(np.arange(lon_y), intens, lon_y) * gaussian(t, delay, spread) 
 
                 elif magnitude["type"] == "TMstep":
                     id = source["index"]
@@ -220,7 +220,7 @@ class Solver:
                     lon_y = id[U][Y] - id[L][Y]
                     middle_x = int((id[U][X] - id[L][X])/2 + id[L][X])
                     hNew[middle_x, id[L][Y]:id[U][Y]] += \
-                     coss(np.arange(lon_y), intens, lon_y) * step(t, tlim * dt) 
+                     coss(np.arange(lon_y), intens, lon_y) * step(t, tlim * dt * 10)  
                      
                 else:
                     raise ValueError(\

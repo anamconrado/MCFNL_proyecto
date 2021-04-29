@@ -103,12 +103,12 @@ class View:
             pcolormesh_data = np.array([np.array([np.array([self.data['valuese_x'][t][i][j]\
                 for t in t_ind]) for i in x_ind]) for j in y_ind])      
 
-            plt.title(r'${ \left | \vec E \right | }$')  
+            plt.title(r'${ \vec {E_x} }$')  
 
             #Animation   
             # now we make our blocks
             pcolormesh_block = amp.blocks.Pcolormesh(X[:,:,0], Y[:,:,0], pcolormesh_data,
-                                          t_axis=2,vmin = 0, vmax = 0.05)
+                                          t_axis=2,vmin = -0.05, vmax = 0.05)
             plt.colorbar(pcolormesh_block.quad)
             timeline = amp.Timeline([i*(10**9) for i in self.data["time"]], fps=30, units='ns')
 
@@ -116,7 +116,7 @@ class View:
             anim = amp.Animation([pcolormesh_block], timeline)
             anim.controls()
 
-            anim.save('videos/electric_field_magnitude.mp4')
+            anim.save_gif('videos/electric_field_magnitude')
             plt.show() 
         
         elif fields == 'both':
@@ -127,7 +127,7 @@ class View:
                 
             ax2.set_xlabel('x')
             ax1.set_title (r'$ H_z $')
-            ax2.set_title(r'$  \vec {E_x} \right | $')
+            ax2.set_title(r'$  \vec {E_x} $')
 
             pcolormesh_data_e = np.array([np.array([np.array([self.data['valuese_x'][t][i][j]\
                 for t in t_ind]) for i in x_ind]) for j in y_ind])      
@@ -135,25 +135,42 @@ class View:
             pcolormesh_data_m = np.array([np.array([np.array([self.data['values'][t][i][j]\
                 for t in t_ind]) for i in x_ind]) for j in y_ind])
 
+            maxe_x = []
+            mine_x = []
+            max_m = []
+            min_m = []
+            t0 = 0
+            tf = 100
+            for time in self.data['valuese_x'][t0:tf]:
+                maxe_x.append(max([max(i) for i in time]))
+                mine_x.append(min([min(i) for i in time]))    
+
+            for time in self.data['values'][t0:tf]:
+                max_m.append(max([max(i) for i in time]))
+                min_m.append(min([min(i) for i in time]))
+
+            maxmin_e_x = [max(maxe_x),min(mine_x)]
+            maxmin_m = [max(max_m),min(min_m)]
+
             fig.suptitle(r'${  \vec {E_x}  \ & \ H_z }$')  
 
             #Animation   
             # now we make our blocks
             pcolormesh_block_e = amp.blocks.Pcolormesh(X[:,:,0], Y[:,:,0], pcolormesh_data_e,
-                                          ax=ax2, t_axis=2,vmin = -0.05, vmax = 0.05)
+                                          ax=ax2, t_axis=2,vmin = maxmin_e_x[1]*0.6, vmax = maxmin_e_x[0]*0.6)
             pcolormesh_block_m = amp.blocks.Pcolormesh(X[:,:,0], Y[:,:,0], pcolormesh_data_m,
-                                          ax=ax1, t_axis=2,vmin = -0.05, vmax = 0.05)                                    
+                                          ax=ax1, t_axis=2,vmin = maxmin_m[1]*0.6, vmax = maxmin_m[0]*0.6)                                    
 
             plt.colorbar(pcolormesh_block_e.quad, ax = ax2)
             plt.colorbar(pcolormesh_block_m.quad, ax = ax1)
-            timeline = amp.Timeline([i*(10**9) for i in self.data["time"]], fps=30, units='ns')
+            timeline = amp.Timeline([i*(10**9) for i in self.data["time"]], fps=10, units='ns')
 
             # now to contruct the animation
             anim = amp.Animation([pcolormesh_block_m,pcolormesh_block_e], timeline)
             anim.controls()
 
             # Change if windows.
-            anim.save('videos/electric_magnitude_&_magnetic_z.mp4')
+            anim.save_gif('videos/electric_magnitude_&_magnetic_z')
             plt.show()                         
         else: raise Exception("Input must be 'magnetic', 'electric' or 'both'")
 
