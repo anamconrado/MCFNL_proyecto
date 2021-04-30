@@ -133,9 +133,9 @@ class Solver:
                     beta = np.sqrt(freq**2*mu*epsilon - kc**2)
 
                     eNew[X][middle_x, id[L][Y]:id[U][Y]] += \
-                     siny(beta*np.arange(lon_y), mode, intens, lon_y) * np.cos(freq*t) * gaussian(t, delay, spread) * dt
+                     siny(beta*np.arange(lon_y), mode, intens, lon_y) * np.cos(freq*t) * gaussian(t, delay, spread) 
                     eNew[Y][middle_x, id[L][Y]:id[U][Y]] += \
-                     beta/kc * cosy(beta*np.arange(lon_y), mode, intens, lon_y) * np.sin(freq*t) * gaussian(t, delay, spread) * dt
+                     beta/kc * cosy(beta*np.arange(lon_y), mode, intens, lon_y) * np.sin(freq*t) * gaussian(t, delay, spread) 
 
                 elif magnitude["type"] == "TMstep":
                     mode = source["mode"]
@@ -152,10 +152,17 @@ class Solver:
                     kc = mode*np.pi/lon_y
                     beta = np.sqrt(freq**2*mu*epsilon - kc**2)
 
-                    eNew[X][middle_x, id[L][Y]:id[U][Y]] += \
-                     siny(beta*np.arange(lon_y), mode, intens, lon_y) * np.cos(freq*t) * step(t, tlim * dt) 
-                    eNew[Y][middle_x, id[L][Y]:id[U][Y]] += \
-                     beta/kc * cosy(np.arange(lon_y), mode, intens, lon_y) * np.sin(freq*t) * step(t, tlim * dt) 
+
+                    for x in range(id[L][X],id[U][X]):
+                        eNew[X][x, id[L][Y]:(id[U][Y] + 1)] += \
+                         siny(np.arange(lon_y +1), mode, intens, lon_y)* step(t, tlim * dt)\
+                             *(np.sin(freq*t) * np.sin(beta*x) +  np.cos(freq*t)* np.cos(beta*x))
+
+
+                    for x in range(id[L][X],id[U][X]):            
+                        eNew[Y][x, id[L][Y]:id[U][Y]] += \
+                         beta/kc * cosy(np.arange(lon_y), mode, intens, lon_y) * step(t, tlim * dt)\
+                             *(np.sin(freq*t) * np.cos(beta*x) - np.sin(beta*x) * np.cos(freq*t))
                      
                 else:
                     raise ValueError(\
@@ -170,10 +177,11 @@ class Solver:
                         bound.arrayIdx(U,X))
             (ly, uy) = (bound.arrayIdx(L,Y), \
                         bound.arrayIdx(U,Y))
-            #print(lx, ux, ly, ux)
+            # print(lx, ux, ly, ux)
 
             if isinstance(bound, self._mesh.BoundPEC):
-                eNew[xy][lx:ux,ly:uy] = 0.0
+                 eNew[xy][lx:ux,ly:uy] = 0.0
+            
 
 #            elif isinstance(bound, self._mesh.BoundMUR):
 #                c0 = sp.speed_of_light
@@ -191,7 +199,8 @@ class Solver:
             
             else:
                 raise ValueError("Unrecognized boundary type")
-        
+
+
         # Subgridding and updating
         e[X][:] = eNew[X][:]
         e[Y][:] = eNew[Y][:]  
@@ -257,8 +266,10 @@ class Solver:
                     kc = mode*np.pi/lon_y
                     beta = np.sqrt(freq**2*mu*epsilon - kc**2)
 
-                    hNew[middle_x, id[L][Y]:id[U][Y]] += \
-                    -freq*epsilon/kc * cosy(beta*np.arange(lon_y), mode, intens, lon_y) * np.sin(freq*t) * step(t, tlim * dt) 
+                    for x in range(id[L][X],id[U][X]):
+                        hNew[x, id[L][Y]:id[U][Y]] += \
+                           freq*epsilon/kc * cosy(np.arange(lon_y), mode, intens, lon_y) * step(t, tlim * dt)\
+                                *(-np.sin(freq*t)*np.cos(beta*x) + np.sin(beta*x)*np.cos(freq*t))
                      
                 else:
                     raise ValueError(\
@@ -282,34 +293,44 @@ class Solver:
                     self.old.hz[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ]
                 
                 """
+                # Electric field at magnetic field positions
                 # Ex values without first raw    
                 valuesexup = \
                     self.old.ex[ idx[L][X]:idx[U][X], (idx[L][Y]+1):(idx[U][Y]+1) ]
                 # Ex values without last raw
                 valuesexdown = \
                     self.old.ex[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ]
-                """
+                
 
                 # Mean values, Ex same position as Hz
                 valuesex = np.array([list(map(lambda x, y: (x+y)/2,\
                 self.old.ex[ idx[L][X]:idx[U][X], (idx[L][Y]+1):(idx[U][Y]+1) ][i],\
                 self.old.ex[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ][i]))\
                 for i in range(0,self.old.ex.shape[0])])
-                
                 """
+                valuesex = np.zeros((idx[U][X]- idx[L][X], idx[U][Y]+1 - idx[L][Y] ))
+                valuesex[:,:] = self.old.ex[ idx[L][X]:idx[U][X], idx[L][Y]:(idx[U][Y]+1) ]
+
+
+                """
+                # Electric field at magnetic field positions
                 # Ey values without first column
                 valueseyright = \
                     self.old.ey[ (idx[L][X]+1):(idx[U][X]+1), idx[L][Y]:idx[U][Y] ]
                 # Ey values without last comlumn
                 valueseyleft = \
                     self.old.ey[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ]
-                """
+                
 
                 # Mean values, Ey same position as Hz
                 valuesey = np.array([list(map(lambda x, y: (x+y)/2,\
                 self.old.ey[ (idx[L][X]+1):(idx[U][X]+1), idx[L][Y]:idx[U][Y] ][i],\
                 self.old.ey[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ][i]))\
                 for i in range(0,self.old.ey.shape[0]-1)])
+                """
+                valuesey = np.zeros((idx[U][X]+1- idx[L][X], idx[U][Y] - idx[L][Y] ))
+                valuesey[:,:] = self.old.ey[ idx[L][X]:(idx[U][X]+1), idx[L][Y]:idx[U][Y] ]
+
 
                 p["values"].append(values)
                 p["valuese_mod"].append(np.array([list(map(lambda x,y: np.sqrt(x**2 +y**2), valuesex[i], valuesey[i])) for i in range(0,len(valuesex))]))

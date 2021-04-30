@@ -39,7 +39,7 @@ T = measures.T_f()
 
 print('--- Creating video')
 view = View(solver.getProbes()) # Incio de un objeto de la clase View
-view.generate_video('both')
+view.generate_video('all')
 
 print('--- Writing output files')
 (folder, file) = os.path.split(inputFilename)

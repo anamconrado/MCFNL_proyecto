@@ -127,8 +127,8 @@ class View:
                 
             ax3.set_xlabel('x')
             ax3.set_title (r'$ H_z $')
-            ax2.set_title(r'$  \vec {E_y} $')
-            ax1.set_title(r'$ \vec {E_x} $')
+            ax2.set_title(r'$ {E_y} $')
+            ax1.set_title(r'$ {E_x} $')
 
             pcolormesh_data_ex = np.array([np.array([np.array([self.data['valuese_x'][t][i][j]\
                 for t in t_ind]) for i in x_ind]) for j in y_ind])   
@@ -163,9 +163,8 @@ class View:
             maxmin_e_y = [max(maxe_y),min(mine_y)]
             maxmin_m = [max(max_m),min(min_m)]
 
-            fig.suptitle(r'${  \vec {E_x}  \ & \  \vec {E_y} \ & \ H_z }$')  
-            fig.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=None)
-            
+            fig.suptitle(r'${   {E_x}  \ & \  {E_y} \ & \ H_z }$')  
+            fig.subplots_adjust(left=None, bottom=0.1, right=None, top=0.85, wspace=None, hspace=0.5)
             #Animation   
             # now we make our blocks
             pcolormesh_block_ex = amp.blocks.Pcolormesh(X[:,:,0], Y[:,:,0], pcolormesh_data_ex,
@@ -185,7 +184,7 @@ class View:
             anim.controls()
 
             # Change if windows.
-            anim.save_gif('videos/electric_magnitude_&_magnetic_z')
+            anim.save_gif('videos/allfields')
             plt.show()                         
         else: raise Exception("Input must be 'magnetic', 'electric' or 'both'")
 
