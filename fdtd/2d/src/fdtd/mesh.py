@@ -4,12 +4,8 @@ import numpy as np
 import copy
 import math
 
+from fdtd.common import X, Y, L, U
 
-X = 0 # Cartesian indices
-Y = 1
-
-L = 0 # Lower
-U = 1 # Upper
 class Mesh:
 
     class Bound:
@@ -75,8 +71,9 @@ class Mesh:
         else:
             raise ValueError("Grid data must contain \"elemId\" or \"box\".")
 
-        (Lx, Ly) = abs(box[U] - box[L]) # Da la longitud del grid restando las esquinas del rectángulo
+        (Lx, Ly) = abs(box[U] - box[L]) # Gives the longitude of the grid subtracting the corners of the rectangle
         (dx, dy) = grid["steps"]
+        
         self.pos =  \
             (np.linspace(box[L][X], box[U][X], num=int(Lx/dx)+1, endpoint=True),
              np.linspace(box[L][Y], box[U][Y], num=int(Ly/dy)+1, endpoint=True) )
@@ -88,18 +85,21 @@ class Mesh:
                     if grid["bounds"][xy][lu] == "pec":
                         self.bounds.append(Mesh.BoundPEC().idsAs(lu, xy))
         
-                
+    # Gives the step of the mesh            
     def steps(self):
         return (self.pos[X][1]-self.pos[X][0], self.pos[Y][1]-self.pos[Y][0])
 
+    # Gives the origin of the mesh
     def origin(self):
         return (self.pos[X][0], self.pos[Y][0])
 
+    # Generates a domain for the mesh depending of the type of elemnt given
+    # Given a diagonal, generates a rectangle: a tuple with the left bottom corner as first element and the right top corner as second element
     def elemIdToBox(self, id):
         return ( np.array(self.coordinates[ self.elements[id][0] ]), \
                  np.array(self.coordinates[ self.elements[id][1] ]) )
-    # Genera un rectángulo: una tupla con la esquina inferior izquiera como primer elemento y la esquina superior derecha como segundo
 
+    # Gives the index, both x-axis and y-axis, of the rectangle given in coords
     def toIdx(self, coords):
         if type(coords) != tuple and type(coords) != list:
             coords = [coords]

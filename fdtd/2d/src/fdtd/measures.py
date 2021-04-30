@@ -1,11 +1,7 @@
 import numpy as np
 import copy
 
-X = 0 # Cartesian indices
-Y = 1
-
-L = 0 # Lower
-U = 1 # Upper
+from fdtd.common import X, Y, L, U
 
 class Measures:
     def __init__(self, mesh, data, measures):
@@ -25,10 +21,6 @@ class Measures:
         mu = 1.0
         epsilon = 1.0
         self.eta = np.sqrt(mu/epsilon)
-       
-        self.Ntimes = len(self._data['time'])
-        self.Nhzx = len(self._data['values'][0]) # Cantidad de datos en el eje X
-        self.Nhzy = len(self._data['values'][0][0]) # Cantidad de datos en el eje Y
 
     def I_inc_f(self):
         self.Hz_inc = np.array([np.array([np.array([k for k in j[self.ids_inc[L][Y]:self.ids_inc[U][Y]]]) for j in i[self.ids_inc[L][X]: self.ids_inc[U][X]]]) for i in self._data["values"]])

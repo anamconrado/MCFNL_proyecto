@@ -3,7 +3,7 @@ import argparse
 import os.path
 import sys
 
-from fdtd.xdmf import Xdmf
+# from fdtd.xdmf import Xdmf # To write output file that can be visualize with Paraview
 from fdtd.mesh import Mesh
 from fdtd.solver import Solver
 from fdtd.viewer import View
@@ -38,18 +38,15 @@ R = measures.R_f()
 T = measures.T_f()
 
 print('--- Creating video')
-view = View(solver.getProbes()) # Incio de un objeto de la clase View
+view = View(solver.getProbes()) # Start of an object of class View
 view.generate_video('all')
 
-print('--- Writing output files')
-(folder, file) = os.path.split(inputFilename)
-caseName = os.path.splitext(file)[0]
-xdmf = Xdmf(basename = caseName, format = "XML")
-
-
-for p in solver.getProbes():
-    xdmf.add(p)
-
-open(xdmf.basename + ".xmf", "w+").write(xdmf.tostring().decode('utf-8'))
+# print('--- Writing output files')
+# (folder, file) = os.path.split(inputFilename)
+# caseName = os.path.splitext(file)[0]
+# xdmf = Xdmf(basename = caseName, format = "XML")
+# for p in solver.getProbes():
+#     xdmf.add(p)
+# open(xdmf.basename + ".xmf", "w+").write(xdmf.tostring().decode('utf-8'))
 
 print('=== Program finished')
