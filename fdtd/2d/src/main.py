@@ -27,7 +27,7 @@ print('--- Initializing mesh')
 mesh = Mesh(data["coordinates"], data["elements"], data["grid"])
 
 print('--- Initializing solver')
-solver = Solver(mesh, data["options"], data["probes"], data["sources"])
+solver = Solver(mesh, data["options"], data["probes"], data["sources"], data["material"])
 
 print('--- Solving')
 solver.solve(data["options"]["finalTime"])
@@ -39,7 +39,7 @@ T = measures.T_f()
 
 print('--- Creating video')
 view = View(solver.getProbes()) # Incio de un objeto de la clase View
-view.generate_video('all')
+view.generate_video('both')
 
 print('--- Writing output files')
 (folder, file) = os.path.split(inputFilename)
