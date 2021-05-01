@@ -4,11 +4,7 @@ import scipy.constants as sp
 import copy
 import time
 
-X = 0 # Cartesian indices
-Y = 1
-
-L = 0 # Lower
-U = 1 # Upper
+from fdtd.common import X, Y, L, U
 
 def gaussian(x, delay, spread):
     return np.exp( - ((x-delay)**2 / (2*spread**2)) )
@@ -144,8 +140,8 @@ class Solver:
                     id = source["index"]
                     intens = magnitude["sinIntensity"]
                     tlim = magnitude["stepTimeLimit"]
-                    lon_y = id[U][Y] - id[L][Y]
-                    middle_x = int((id[U][X] - id[L][X])/2 + id[L][X])
+                    lon_y_idx = id[U][Y] - id[L][Y]
+                    lon_y =  lon_y_idx * dY
 
                     epsilon = self._material["epsilon"]
                     mu = self._material["mu"]
@@ -155,14 +151,14 @@ class Solver:
 
                     for x in range(id[L][X],id[U][X]):
                         eNew[X][x, id[L][Y]:(id[U][Y] + 1)] += \
-                         siny(np.arange(lon_y +1), mode, intens, lon_y)* step(t, tlim * dt)\
-                             *(np.sin(freq*t) * np.sin(beta*x) +  np.cos(freq*t)* np.cos(beta*x))
+                         siny(np.arange(lon_y_idx +1), mode, intens, lon_y)* step(t, tlim * dt)\
+                             *(np.sin(freq*t) * np.sin(beta*x* dX) +  np.cos(freq*t)* np.cos(beta*x*dX))
 
 
                     for x in range(id[L][X],id[U][X]):            
                         eNew[Y][x, id[L][Y]:id[U][Y]] += \
-                         beta/kc * cosy(np.arange(lon_y), mode, intens, lon_y) * step(t, tlim * dt)\
-                             *(np.sin(freq*t) * np.cos(beta*x) - np.sin(beta*x) * np.cos(freq*t))
+                         beta/kc * cosy(np.arange(lon_y_idx), mode, intens, lon_y) * step(t, tlim * dt)\
+                             *(np.sin(freq*t) * np.cos(beta*x* dX) - np.sin(beta*x* dX) * np.cos(freq*t))
                      
                 else:
                     raise ValueError(\
@@ -258,8 +254,8 @@ class Solver:
                     id = source["index"]
                     intens = magnitude["sinIntensity"]
                     tlim = magnitude["stepTimeLimit"]
-                    lon_y = id[U][Y] - id[L][Y]
-                    middle_x = int((id[U][X] - id[L][X])/2 + id[L][X])
+                    lon_y_idx = id[U][Y] - id[L][Y]
+                    lon_y =  lon_y_idx * dY
 
                     epsilon = self._material["epsilon"]
                     mu = self._material["mu"]
@@ -269,7 +265,7 @@ class Solver:
                     for x in range(id[L][X],id[U][X]):
                         hNew[x, id[L][Y]:id[U][Y]] += \
                            freq*epsilon/kc * cosy(np.arange(lon_y), mode, intens, lon_y) * step(t, tlim * dt)\
-                                *(-np.sin(freq*t)*np.cos(beta*x) + np.sin(beta*x)*np.cos(freq*t))
+                                *(-np.sin(freq*t)*np.cos(beta*x*dX) + np.sin(beta*x*dX)*np.cos(freq*t))
                      
                 else:
                     raise ValueError(\

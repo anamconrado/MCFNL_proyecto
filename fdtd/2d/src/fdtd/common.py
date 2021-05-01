@@ -1,4 +1,3 @@
-
 X = 0 # Cartesian indices
 Y = 1
 
