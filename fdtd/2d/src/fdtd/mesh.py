@@ -73,6 +73,7 @@ class Mesh:
 
         (Lx, Ly) = abs(box[U] - box[L]) # Gives the longitude of the grid subtracting the corners of the rectangle
         (dx, dy) = grid["steps"]
+        (self.dx, self.dy) = (dx, dy)
         
         self.pos =  \
             (np.linspace(box[L][X], box[U][X], num=int(Lx/dx)+1, endpoint=True),

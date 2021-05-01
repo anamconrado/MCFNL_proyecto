@@ -46,8 +46,8 @@
             "frequency": 1,
             "mode": 1,
             "magnitude": {
-                "type": "TMstep",
-                "gaussianDelay": 8e-9,
+                "type": "TMgauss",
+                "gaussianDelay": 4e-9,
                 "gaussianSpread": 1e-9,
                 "sinIntensity": 2,
                 "stepTimeLimit": 10

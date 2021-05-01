@@ -38,7 +38,8 @@ R = measures.R_f()
 T = measures.T_f()
 
 print('--- Creating video')
-view = View(solver.getProbes()) # Start of an object of class View
+view = View(solver.getProbes(),measures.Ports) # Start of an object of class View
+view.plots(0, measures)
 view.generate_video('all')
 
 # print('--- Writing output files')
