@@ -99,7 +99,7 @@ class Mesh:
         return ( np.array(self.coordinates[ self.elements[id][0] ]), \
                  np.array(self.coordinates[ self.elements[id][1] ]) )
 
-    # Gives the index, both x-axis and y-axis, of the rectangle given in coords
+    # Gives the first and last index of both x-axis and y-axis, of the rectangle given in coords
     def toIdx(self, coords):
         if type(coords) != tuple and type(coords) != list:
             coords = [coords]
@@ -116,3 +116,8 @@ class Mesh:
             id = self.toIdx(coord)[0]
             res.append( np.array([ self.pos[X][id[X]], self.pos[Y][id[Y]] ]) )
         return res
+
+    def IdxToPos(self, id, pos):
+        pos = np.array(pos)
+        return [pos[X][id[L][X]:id[U][X]], \
+            pos[Y][id[L][Y]:id[U][Y]]] 
