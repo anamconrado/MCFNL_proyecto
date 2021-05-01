@@ -2,7 +2,7 @@
     "_format": "pyfdtd2d",
     
     "options": {
-        "finalTime": 15e-9,
+        "finalTime": 80e-9,
         "cfl": 0.8
     },
 

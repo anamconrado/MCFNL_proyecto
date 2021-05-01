@@ -64,127 +64,60 @@ class View:
         X, Y, _ = np.meshgrid(self.x_axis,self.y_axis,self.data["time"])
 
         # Creating a figure for visualization
+        fig, (ax1, ax2, ax3) = plt.subplots(3,1)
 
-
-        if fields == 'magnetic':
-            plt.figure()
-
-            plt.xlabel('x')
-            plt.ylabel('y')
-        
-
-            # pcolormesh_data matrix with magnited field values.
-            pcolormesh_data = np.array([np.array([np.array([self.data['values'][t][i][j]\
-                for t in t_ind]) for i in x_ind]) for j in y_ind])
-
-            plt.title(r'${H_z}$')
-
-            # Animation        
-            # now we make our blocks
-            pcolormesh_block = amp.blocks.Pcolormesh(X[:,:,0], Y[:,:,0], pcolormesh_data,
-                                          t_axis=2,vmin = -0.05, vmax = 0.05)
-            plt.colorbar(pcolormesh_block.quad)
-            timeline = amp.Timeline([i*(10**9) for i in self.data["time"]], fps=30, units='ns')
-
-            # now to contruct the animation
-            anim = amp.Animation([pcolormesh_block], timeline)
-            anim.controls()
-
-            anim.save('videos/magnetic_z_field.mp4')
-            plt.show()
-
-        elif fields == 'electric':
-            plt.figure()
-            plt.xlabel('x')
-            plt.ylabel('y')
-
-            pcolormesh_data = np.array([np.array([np.array([self.data['valuese_x'][t][i][j]\
-                for t in t_ind]) for i in x_ind]) for j in y_ind])      
-
-            plt.title(r'${ \vec {E_x} }$')  
-
-            #Animation   
-            # now we make our blocks
-            pcolormesh_block = amp.blocks.Pcolormesh(X[:,:,0], Y[:,:,0], pcolormesh_data,
-                                          t_axis=2,vmin = -0.05, vmax = 0.05)
-            plt.colorbar(pcolormesh_block.quad)
-            timeline = amp.Timeline([i*(10**9) for i in self.data["time"]], fps=30, units='ns')
-
-            # now to contruct the animation
-            anim = amp.Animation([pcolormesh_block], timeline)
-            anim.controls()
-
-            anim.save_gif('videos/electric_field_magnitude')
-            plt.show() 
-        
-        elif fields == 'all':
-            fig, (ax1, ax2, ax3) = plt.subplots(3,1)
-
-            for i in [ax1,ax2,ax3]:
-                i.set_ylabel('y')
-                
-            ax3.set_xlabel('x')
-            ax3.set_title (r'$ H_z $')
-            ax2.set_title(r'$ {E_y} $')
-            ax1.set_title(r'$ {E_x} $')
-
-            pcolormesh_data_ex = np.array([np.array([np.array([self.data['valuese_x'][t][i][j]\
-                for t in t_ind]) for i in x_ind]) for j in y_ind])   
-            pcolormesh_data_ey = np.array([np.array([np.array([self.data['valuese_y'][t][i][j]\
-                for t in t_ind]) for i in x_ind]) for j in y_ind])     
-            pcolormesh_data_m = np.array([np.array([np.array([self.data['values'][t][i][j]\
-                for t in t_ind]) for i in x_ind]) for j in y_ind])
-
-            maxe_x = []
-            mine_x = []
-
-            maxe_y = []
-            mine_y = []
+        fields = {"Ex": ['valuese_x',ax1,[],[]], "Ey": ['valuese_y',ax2,[],[]], "Hz":['values',ax3,[],[]]}
+        for i in fields.values():
+            i[1].set_ylabel('y')
             
-            max_m = []
-            min_m = []
-            t0 = 0
-            tf = 100
-            for time in self.data['valuese_y'][t0:tf]:
-                maxe_y.append(max([max(i) for i in time]))
-                mine_y.append(min([min(i) for i in time]))   
+        fields["Hz"][1].set_xlabel('x')
+        fields["Ex"][1].set_title(r'$ {E_x} $')
+        fields["Ey"][1].set_title(r'$ {E_y} $')
+        fields["Hz"][1].set_title (r'$ H_z $')
 
-            for time in self.data['valuese_x'][t0:tf]:
-                maxe_x.append(max([max(i) for i in time]))
-                mine_x.append(min([min(i) for i in time]))   
 
-            for time in self.data['values'][t0:tf]:
-                max_m.append(max([max(i) for i in time]))
-                min_m.append(min([min(i) for i in time]))
+        for i in fields:
+            field = fields[i][0]
+            fields[i][2] = np.array([np.array([np.array([self.data[field][t][i][j]\
+                for t in t_ind]) for i in x_ind]) for j in y_ind]) 
 
-            maxmin_e_x = [max(maxe_x),min(mine_x)]
-            maxmin_e_y = [max(maxe_y),min(mine_y)]
-            maxmin_m = [max(max_m),min(min_m)]
+        dicmaxmins = {"Ex": ['valuese_x', [], []],\
+                "Ey": ['valuese_y', [], []],\
+                "Hz": ['values', [], []]}
+        
+        t0 = 0
+        tf = 100
 
-            fig.suptitle(r'${   {E_x}  \ & \  {E_y} \ & \ H_z }$')  
-            fig.subplots_adjust(left=None, bottom=0.1, right=None, top=0.85, wspace=None, hspace=0.5)
-            #Animation   
-            # now we make our blocks
-            pcolormesh_block_ex = amp.blocks.Pcolormesh(X[:,:,0], Y[:,:,0], pcolormesh_data_ex,
-                                          ax=ax1, t_axis=2,vmin = maxmin_e_x[1]*0.6, vmax = maxmin_e_x[0]*0.6)
-            pcolormesh_block_ey = amp.blocks.Pcolormesh(X[:,:,0], Y[:,:,0], pcolormesh_data_ey,
-                                          ax=ax2, t_axis=2,vmin = maxmin_e_y[1]*0.6, vmax = maxmin_e_y[0]*0.6)
-            pcolormesh_block_m = amp.blocks.Pcolormesh(X[:,:,0], Y[:,:,0], pcolormesh_data_m,
-                                          ax=ax3, t_axis=2,vmin = maxmin_m[1]*0.6, vmax = maxmin_m[0]*0.6)                                    
+        for i in dicmaxmins.values():
+            for time in self.data[i[0]][t0:tf]: 
+                (i[1]).append(max([max(j) for j in time]))
+                (i[2]).append(min([min(j) for j in time]))
 
-            plt.colorbar(pcolormesh_block_ex.quad, ax = ax1)
-            plt.colorbar(pcolormesh_block_ey.quad, ax = ax2)
-            plt.colorbar(pcolormesh_block_m.quad, ax = ax3)
-            timeline = amp.Timeline([i*(10**9) for i in self.data["time"]], fps=10, units='ns')
+        for i in dicmaxmins:
+            dicmaxmins[i][1] = max(dicmaxmins[i][1])
+            dicmaxmins[i][2] = min(dicmaxmins[i][2])
 
-            # now to contruct the animation
-            anim = amp.Animation([pcolormesh_block_ex,pcolormesh_block_ey,pcolormesh_block_m,], timeline)
-            anim.controls()
+        fig.suptitle(r'${   {E_x}  \ & \  {E_y} \ & \ H_z }$')  
+        fig.subplots_adjust(left=None, bottom=0.1, right=None, top=0.85, wspace=None, hspace=0.5)
+        #Animation   
+        # now we make our blocks
+        for i in fields:
+            fields[i][3] = amp.blocks.Pcolormesh(X[:,:,0], Y[:,:,0], fields[i][2],
+                ax=fields[i][1], t_axis=2,vmin = (dicmaxmins[i][2])*0.6, vmax =  (dicmaxmins[i][1])*0.6)                              
 
-            # Change if windows.
-            anim.save_gif('videos/allfields')
-            plt.show()                         
-        else: raise Exception("Input must be 'magnetic', 'electric' or 'both'")
+        for i in fields:
+            plt.colorbar(fields[i][3].quad, ax = fields[i][1])
+
+        timeline = amp.Timeline([i*(10**9) for i in self.data["time"]], fps=10, units='ns')
+
+        # now to contruct the animation
+        anim = amp.Animation([fields["Ex"][3],fields["Ey"][3],fields["Hz"][3],], timeline)
+        anim.controls()
+
+        # Change if windows.
+        # anim.save_gif('videos/allfselds')
+        anim.save('videos/allfields.avi')
+        plt.show()                         
 
 
 

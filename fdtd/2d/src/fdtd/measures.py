@@ -34,10 +34,10 @@ class Measures:
         if n == 0:
             ids =  self.ids_inc
             x_width = float(ids[U][X]-ids[L][X])
-        elif n == 1:
+        elif n == 2:
             ids = self.ids_refl
             x_width = float(ids[U][X]-ids[L][X])
-        elif n == 2:
+        elif n == 1:
             ids = self.ids_trans  
             x_width = float(ids[U][X]-ids[L][X])
         else: raise Exception("Puertos 0, 1 y 2 de izquierda a derecha.")
