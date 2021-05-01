@@ -2,7 +2,7 @@
     "_format": "pyfdtd2d",
     
     "options": {
-        "finalTime": 10e-9,
+        "finalTime": 15e-9,
         "cfl": 0.8
     },
 
@@ -10,7 +10,7 @@
         [ 0.0,  0.0], 
         [ 5.0,  2.5],
         [ 1.0,  0.0],
-        [ 1.2, 2.5],
+        [ 1.1, 2.5],
         [ 4.5,  0.0],
         [ 4.55,  2.5],
         [ 0.5,  0.0],
@@ -50,7 +50,7 @@
                 "gaussianDelay": 8e-9,
                 "gaussianSpread": 1e-9,
                 "sinIntensity": 2,
-                "stepTimeLimit": 5
+                "stepTimeLimit": 10
             },
             "elemId": 2
         }
