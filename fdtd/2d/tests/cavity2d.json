@@ -8,9 +8,11 @@
 
     "coordinates": [
         [ 0.0,  0.0], 
-        [ 5.0,  2.5],
-        [ 1.0,  0.0],
-        [ 1.1, 2.5],
+        [ 10.0,  5.0],
+        [ 5.0,  0.0],
+        [ 5.2, 5.0],
+
+
         [ 4.5,  0.0],
         [ 4.55,  2.5],
         [ 0.5,  0.0],
@@ -43,15 +45,16 @@
         {
             "type": "dipole", 
             "direction": [1.0, 0.0, 0.0],
-            "frequency": 1,
+            "frequency": 0.7,
             "mode": 1,
             "magnitude": {
-                "type": "TMgauss",
-                "gaussianDelay": 4e-9,
+                "type": "TMstep",
+                "gaussianDelay": 2e-9,
                 "gaussianSpread": 1e-9,
                 "sinIntensity": 2,
-                "stepTimeLimit": 10
+                "stepTimeLimit": 5            
             },
+
             "elemId": 2
         }
     ],
