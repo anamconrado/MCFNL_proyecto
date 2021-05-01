@@ -4,10 +4,14 @@ import matplotlib.pyplot as plt
 import animatplot as amp
 import copy
 
+def Ztimes(self,t):
+    return self.data['values'][t]
+
+
 class View:
     """ Allows the visualization of simulation results. """
 
-    def __init__(self, datos):
+    def __init__(self, datos, coeff):
         self.data = copy.deepcopy(datos[0])
         self.Ntimes = len(self.data['time'])
         self.Nhzx = len(self.data['values'][0]) # Cantidad de datos en el eje X
@@ -34,20 +38,14 @@ class View:
         """
 
 
-    def plot(self, time, fields = "magnetic"):
+    def plots(self, port, measures):
         """ Plots a snapshot of the input field at the input time:
         Inputs:
         | - time: whatever value between 0 and finalTime. 
         | - fields: must be 'magnetic': plots Hz;'electric': plots de module of the elctric
         |field or 'both': plots both at the same time."""
-        X,Y = np.meshgrid(self.x_axis,self.y_axis)
-        Z = self.data['values'][time]
-
-        plt.contour(X, Y, Z)                           
-        plt.show()
-
-    def Ztimes(self,t):
-        return self.data['values'][t]
+        plt.plot(list(map(lambda i: i*(10**9), self.data['time'])), measures.Ports(port))
+        plt.savefig("Puerto {}.png".format(port))
 
     def generate_video(self, fields = "magnetic"):
         """ Generates a visualization of the dynamics of the input field and writes a mp4

@@ -313,28 +313,29 @@ class Solver:
                 values[:,:] = \
                     self.old.hz[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ]
                 
-                """
+                
                 # Electric field at magnetic field positions
+                
                 # Ex values without first raw    
                 valuesexup = \
-                    self.old.ex[ idx[L][X]:idx[U][X], (idx[L][Y]+1):(idx[U][Y]+1) ]
+                    np.array(self.old.ex[ idx[L][X]:idx[U][X], (idx[L][Y]+1):(idx[U][Y]+1) ])
                 # Ex values without last raw
                 valuesexdown = \
-                    self.old.ex[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ]
+                    np.array(self.old.ex[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ])
                 
 
                 # Mean values, Ex same position as Hz
-                valuesex = np.array([list(map(lambda x, y: (x+y)/2,\
-                self.old.ex[ idx[L][X]:idx[U][X], (idx[L][Y]+1):(idx[U][Y]+1) ][i],\
-                self.old.ex[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ][i]))\
-                for i in range(0,self.old.ex.shape[0])])
+                valuesex = (valuesexup + valuesexdown)/2
+                
+
                 """
                 valuesex = np.zeros((idx[U][X]- idx[L][X], idx[U][Y]+1 - idx[L][Y] ))
                 valuesex[:,:] = self.old.ex[ idx[L][X]:idx[U][X], idx[L][Y]:(idx[U][Y]+1) ]
-
-
                 """
+
+                
                 # Electric field at magnetic field positions
+                
                 # Ey values without first column
                 valueseyright = \
                     self.old.ey[ (idx[L][X]+1):(idx[U][X]+1), idx[L][Y]:idx[U][Y] ]
@@ -344,14 +345,12 @@ class Solver:
                 
 
                 # Mean values, Ey same position as Hz
-                valuesey = np.array([list(map(lambda x, y: (x+y)/2,\
-                self.old.ey[ (idx[L][X]+1):(idx[U][X]+1), idx[L][Y]:idx[U][Y] ][i],\
-                self.old.ey[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ][i]))\
-                for i in range(0,self.old.ey.shape[0]-1)])
+                valuesey = (valueseyright + valueseyleft)/2
+
                 """
                 valuesey = np.zeros((idx[U][X]+1- idx[L][X], idx[U][Y] - idx[L][Y] ))
                 valuesey[:,:] = self.old.ey[ idx[L][X]:(idx[U][X]+1), idx[L][Y]:idx[U][Y] ]
-
+                """
 
                 p["values"].append(values)
                 p["valuese_mod"].append(np.array([list(map(lambda x,y: np.sqrt(x**2 +y**2), valuesex[i], valuesey[i])) for i in range(0,len(valuesex))]))
