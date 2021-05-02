@@ -60,6 +60,10 @@ class Mesh:
         def __init__(self, ids=None):
             Mesh.Bound.__init__(self, ids)
 
+    class BoundMUR(Bound):
+        def __init__(self, ids=None):
+            Mesh.Bound.__init__(self, ids)
+
     def __init__(self, coordinates, elements, grid):
         self.coordinates = coordinates
         self.elements = elements
@@ -85,6 +89,8 @@ class Mesh:
                 for lu in range(len(grid["bounds"][xy])):
                     if grid["bounds"][xy][lu] == "pec":
                         self.bounds.append(Mesh.BoundPEC().idsAs(lu, xy))
+                    elif grid["bounds"][xy][lu] == "mur":
+                        self.bounds.append(Mesh.BoundMUR().idsAs(lu, xy))
         
     # Gives the step of the mesh            
     def steps(self):

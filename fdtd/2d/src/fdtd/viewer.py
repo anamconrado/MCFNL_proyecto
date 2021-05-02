@@ -121,11 +121,6 @@ class View:
         anim.controls()
 
         # Change if windows.
-        # anim.save_gif('videos/allfselds')
-        anim.save('videos/allfields.avi')
+        anim.save_gif('2d/videos/allfselds')
+        #anim.save('2d/videos/allfields.avi')
         plt.show()                         
-
-
-
-
-
