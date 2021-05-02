@@ -99,7 +99,7 @@ class Solver:
         e = (ex, ey)
 
         (dX, dY) = self._mesh.steps()
-        A = dX * dY
+        A = dX * dY * self._material["epsilon"]
         eNew[X][:,1:-1] = e[X][:,1:-1] + dt/A*dX * (h[:,1:] - h[:,:-1])
         eNew[Y][1:-1,:] = e[Y][1:-1,:] - dt/A*dY * (h[1:,:] - h[:-1,:])
 
@@ -220,7 +220,7 @@ class Solver:
         (ex, ey, h) = self.old.get()
         
         (dX, dY) = self._mesh.steps()
-        A = dX * dY
+        A = dX * dY * self._material["mu"]
               
         hNew[:,:] = h[:,:] \
                      - dt/A * dY * ey[1:,  :] \
