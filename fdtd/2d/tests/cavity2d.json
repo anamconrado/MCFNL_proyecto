@@ -2,8 +2,8 @@
     "_format": "pyfdtd2d",
     
     "options": {
-        "finalTime": 80e-9,
-        "cfl": 0.8
+        "finalTime": 20e-9,
+        "cfl": 0.5
     },
 
     "coordinates": [
@@ -48,7 +48,7 @@
             "frequency": 0.7,
             "mode": 1,
             "magnitude": {
-                "type": "TMstep",
+                "type": "TMgauss",
                 "gaussianDelay": 2e-9,
                 "gaussianSpread": 1e-9,
                 "sinIntensity": 2,

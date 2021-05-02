@@ -40,7 +40,7 @@ class Measures:
         elif n == 1:
             ids = self.ids_trans  
             x_width = float(ids[U][X]-ids[L][X])
-        else: raise Exception("Puertos 0, 1 y 2 de izquierda a derecha.")
+        else: raise Exception("0, 1 and 2 ports from left to right")
         self.fields = np.array([{"Hz": np.array([np.array([k for k in j[ids[L][Y]:ids[U][Y]]]) for j in self._data["values"][i][ids[L][X]: ids[U][X]]]) ,\
             "Ex": np.array([np.array([k for k in j[ids[L][Y]:ids[U][Y]]]) for j in self._data["valuese_x"][i][ids[L][X]: ids[U][X]]]) ,\
             "Ey": np.array([np.array([k for k in j[ids[L][Y]:ids[U][Y]]]) for j in self._data["valuese_y"][i][ids[L][X]: ids[U][X]]])}\

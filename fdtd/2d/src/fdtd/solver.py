@@ -130,20 +130,18 @@ class Solver:
                     (xEx, yEx) = self._mesh.IdxToPos(id,self.posEx)
                     xEx = xEx[...,None]
                     yEx = yEx[None,...]
-                    tEx = t + dt/2
+                    tEx = t - dt/2
                     eNew[X][id[L][X]:id[U][X], id[L][Y]:id[U][Y]] += \
                      np.matmul((np.cos(freq*tEx)* np.cos(beta*xEx) - np.sin(freq*tEx) * np.sin(beta*xEx)), \
-                     np.sin(kc * yEx)) *intens \
-                     * gaussian(tEx, delay, spread)
+                     np.sin(kc * yEx)) * intens * gaussian(tEx, delay, spread)
 
                     (xEy, yEy) = self._mesh.IdxToPos(id,self.posEy)
                     xEy = xEy[...,None]
                     yEy = yEy[None,...]
-                    tEy = t + dt/2
+                    tEy = t - dt/2
                     eNew[Y][id[L][X]:id[U][X], id[L][Y]:id[U][Y]] += \
                      np.matmul((np.sin(freq*tEy) * np.cos(beta*xEy) + np.sin(beta*xEy) * np.cos(freq*tEy)),
-                     np.cos(kc *yEy)) * intens * beta/kc \
-                     * gaussian(tEy, delay, spread) 
+                     np.cos(kc *yEy)) * intens * beta/kc * gaussian(tEy, delay, spread) 
 
                 elif magnitude["type"] == "TMstep":
                     mode = source["mode"]
@@ -166,8 +164,7 @@ class Solver:
                     tEx = t + dt/2
                     eNew[X][id[L][X]:id[U][X], id[L][Y]:id[U][Y]] += \
                      np.matmul((np.cos(freq*tEx)* np.cos(beta*xEx) - np.sin(freq*tEx) * np.sin(beta*xEx)), \
-                     np.sin(kc * yEx)) *intens \
-                     * step(tEx, tlim * dt)
+                     np.sin(kc * yEx)) *intens * step(tEx, tlim * dt)
 
                     (xEy, yEy) = self._mesh.IdxToPos(id,self.posEy)
                     xEy = xEy[...,None]
@@ -175,8 +172,7 @@ class Solver:
                     tEy = t + dt/2
                     eNew[Y][id[L][X]:id[U][X], id[L][Y]:id[U][Y]] += \
                      np.matmul((np.sin(freq*tEy) * np.cos(beta*xEy) + np.sin(beta*xEy) * np.cos(freq*tEy)),
-                     np.cos(kc *yEy)) * intens * beta/kc \
-                     * step(tEy, tlim * dt)
+                     np.cos(kc *yEy)) * intens * beta/kc * step(tEy, tlim * dt)
                      
                 else:
                     raise ValueError(\
@@ -266,8 +262,7 @@ class Solver:
                     yHz = yHz[None,...]
                     hNew[id[L][X]:id[U][X], id[L][Y]:id[U][Y]] += \
                      np.matmul((-np.sin(freq*t)*np.cos(beta*xHz) - np.sin(beta*xHz)*np.cos(freq*t)), \
-                     np.cos(kc * yHz)) * intens * freq*epsilon/kc \
-                     * gaussian(t, delay, spread)
+                     np.cos(kc * yHz)) * intens * freq*epsilon/kc * gaussian(t, delay, spread)
 
                 elif magnitude["type"] == "TMstep":
                     mode = source["mode"]
@@ -289,8 +284,7 @@ class Solver:
                     yHz = yHz[None,...]
                     hNew[id[L][X]:id[U][X], id[L][Y]:id[U][Y]] += \
                      np.matmul((-np.sin(freq*t)*np.cos(beta*xHz) - np.sin(beta*xHz)*np.cos(freq*t)), \
-                     np.cos(kc * yHz)) * intens * freq*epsilon/kc \
-                     * step(t, tlim * dt)
+                     np.cos(kc * yHz)) * intens * freq*epsilon/kc * step(t, tlim * dt)
                      
                 else:
                     raise ValueError(\
@@ -327,13 +321,6 @@ class Solver:
                 # Mean values, Ex same position as Hz
                 valuesex = (valuesexup + valuesexdown)/2
                 
-
-                """
-                valuesex = np.zeros((idx[U][X]- idx[L][X], idx[U][Y]+1 - idx[L][Y] ))
-                valuesex[:,:] = self.old.ex[ idx[L][X]:idx[U][X], idx[L][Y]:(idx[U][Y]+1) ]
-                """
-
-                
                 # Electric field at magnetic field positions
                 
                 # Ey values without first column
@@ -346,11 +333,6 @@ class Solver:
 
                 # Mean values, Ey same position as Hz
                 valuesey = (valueseyright + valueseyleft)/2
-
-                """
-                valuesey = np.zeros((idx[U][X]+1- idx[L][X], idx[U][Y] - idx[L][Y] ))
-                valuesey[:,:] = self.old.ey[ idx[L][X]:(idx[U][X]+1), idx[L][Y]:idx[U][Y] ]
-                """
 
                 p["values"].append(values)
                 p["valuese_mod"].append(np.array([list(map(lambda x,y: np.sqrt(x**2 +y**2), valuesex[i], valuesey[i])) for i in range(0,len(valuesex))]))

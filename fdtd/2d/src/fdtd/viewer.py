@@ -39,12 +39,18 @@ class View:
 
 
     def plots(self, port, measures):
-        """ Plots a snapshot of the input field at the input time:
+        """ Plots the input of a port defined in the measures module:
         Inputs:
-        | - time: whatever value between 0 and finalTime. 
-        | - fields: must be 'magnetic': plots Hz;'electric': plots de module of the elctric
-        |field or 'both': plots both at the same time."""
+        | - measures: Object of Measures, give access to class functions as Ports.
+        | - port: Must be 0,1 or 2: indicates the port whose data will be plotted.
+        Output:
+        | - Plot of input port data at all times.
+        """
+        if port != (0 or 1 or  2): raise Exception("port must be 0,1 o 2") 
         plt.plot(list(map(lambda i: i*(10**9), self.data['time'])), measures.Ports(port))
+        plt.title(f"{port} Port")
+        plt.xlabel("Time (ns)")
+        plt.ylabel("Power per length")
         plt.savefig("Puerto {}.png".format(port))
 
     def generate_video(self, fields = "magnetic"):
