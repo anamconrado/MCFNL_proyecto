@@ -31,8 +31,8 @@
         "elemId": 1,
         "steps": [0.05, 0.05],
         "bounds": [
-            ["pec", "pec"],
-            ["pec", "mur"]
+            ["pec", "mur"],
+            ["pec", "pec"]
         ]
     },
 
