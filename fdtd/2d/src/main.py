@@ -33,7 +33,7 @@ print('--- Solving')
 solver.solve(data["options"]["finalTime"])
 
 print('--- Measuring')
-measures = Measures(mesh, solver.getProbes(), data["measures"])
+measures = Measures(mesh, solver.getProbes(), data["measures"], data["material"])
 R = measures.R_f()
 T = measures.T_f()
 
