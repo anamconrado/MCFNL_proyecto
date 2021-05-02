@@ -130,7 +130,7 @@ class Solver:
                     (xEx, yEx) = self._mesh.IdxToPos(id,self.posEx)
                     xEx = xEx[...,None]
                     yEx = yEx[None,...]
-                    tEx = t - dt/2
+                    tEx = t + dt/2
                     eNew[X][id[L][X]:id[U][X], id[L][Y]:id[U][Y]] += \
                      np.matmul((np.cos(freq*tEx)* np.cos(beta*xEx) - np.sin(freq*tEx) * np.sin(beta*xEx)), \
                      np.sin(kc * yEx)) * intens * gaussian(tEx, delay, spread)
@@ -138,7 +138,7 @@ class Solver:
                     (xEy, yEy) = self._mesh.IdxToPos(id,self.posEy)
                     xEy = xEy[...,None]
                     yEy = yEy[None,...]
-                    tEy = t - dt/2
+                    tEy = t + dt/2
                     eNew[Y][id[L][X]:id[U][X], id[L][Y]:id[U][Y]] += \
                      np.matmul((np.sin(freq*tEy) * np.cos(beta*xEy) + np.sin(beta*xEy) * np.cos(freq*tEy)),
                      np.cos(kc *yEy)) * intens * beta/kc * gaussian(tEy, delay, spread) 
