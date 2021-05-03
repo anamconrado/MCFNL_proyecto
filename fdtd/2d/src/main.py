@@ -28,13 +28,13 @@ print('--- Initializing mesh')
 mesh = Mesh(data["coordinates"], data["elements"], data["grid"])
 
 print('--- Initializing solver')
-solver = Solver(mesh, data["options"], data["probes"], data["sources"], data["material"])
+solver = Solver(mesh, data["options"], data["probes"], data["sources"], data["materials"])
 
 print('--- Solving')
 solver.solve(data["options"]["finalTime"])
 
 print('--- Measuring')
-measures = Measures(mesh, solver.getProbes(), data["measures"], data["material"])
+measures = Measures(mesh, solver.getProbes(), data["measures"])
 R = measures.R_f()
 T = measures.T_f()
 

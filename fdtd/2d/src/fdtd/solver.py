@@ -6,6 +6,45 @@ import time
 
 from fdtd.common import X, Y, L, U
 
+# def TMn_Ex(t, x, y, n, intens, freq, mu, epsilon, d):
+#     kc = n*np.pi/d
+#     beta = np.sqrt(freq**2*mu*epsilon - kc**2)
+#     return np.matmul((np.cos(freq*t)* np.cos(beta*x) - np.sin(freq*t) * np.sin(beta*x)), \
+#      np.sin(kc * y)) * intens
+
+def TMn_Ex(t, x, y, n, intens, freq, mu, epsilon, d):
+    kc = n*np.pi/d
+    beta = np.sqrt((freq**2*mu*epsilon - kc**2).astype(np.complex))
+    return np.real(intens\
+        * np.exp(- 1j* beta * x) * np.sin(kc * y) \
+        * np.exp(1j *freq * t))
+
+# def TMn_Ey(t, x, y, n, intens, freq, mu, epsilon, d):
+#     kc = n*np.pi/d
+#     beta = np.sqrt(freq**2*mu*epsilon - kc**2)
+#     return np.matmul((np.sin(freq*t) * np.cos(beta*x) + np.sin(beta*x) * np.cos(freq*t)), \
+#                          np.cos(kc *y)) * intens * beta / kc 
+
+def TMn_Ey(t, x, y, n, intens, freq, mu, epsilon, d):
+    kc = n*np.pi/d
+    beta = np.sqrt((freq**2*mu*epsilon - kc**2).astype(np.complex))
+    return np.real(- intens * 1j * beta / kc \
+        * np.exp(- 1j* beta * x) * np.cos(kc * y) \
+        * np.exp(1j *freq * t))
+
+# def TMn_Hz(t, x, y, n, intens, freq, mu, epsilon, d):
+#     kc = n*np.pi/d
+#     beta = np.sqrt(freq**2*mu*epsilon - kc**2)
+#     return np.matmul((-np.sin(freq*t)*np.cos(beta*x) - np.sin(beta*x)*np.cos(freq*t)), \
+#                          np.cos(kc * y)) * intens * freq * epsilon / kc
+
+def TMn_Hz(t, x, y, n, intens, freq, mu, epsilon, d):
+    kc = n*np.pi/d
+    beta = np.sqrt((freq**2*mu*epsilon - kc**2).astype(np.complex))
+    return np.real(intens * 1j * freq * epsilon / kc \
+        * np.exp(- 1j* beta * x) * np.cos(kc * y) \
+        * np.exp(1j *freq * t))
+
 def gaussian(x, delay, spread):
     return np.exp( - ((x-delay)**2 / (2*spread**2)) )
 
@@ -31,7 +70,7 @@ class Solver:
 
     __timeStepPrint = 5000
 
-    def __init__(self, mesh, options, probes, sources, material):
+    def __init__(self, mesh, options, probes, sources, materials):
         self.options = options
         
         self._mesh = copy.deepcopy(mesh)
@@ -72,20 +111,26 @@ class Solver:
             box = self._mesh.elemIdToBox(source["elemId"])
             ids = mesh.toIdx(box)
             source["index"] = ids
-
-        self._material = copy.deepcopy(material)
         
         self.old = self.Fields(
             ex = np.zeros( (mesh.pos[X].size-1, mesh.pos[Y].size  ) ),
             ey = np.zeros( (mesh.pos[X].size,   mesh.pos[Y].size-1) ),
             hz = np.zeros( (mesh.pos[X].size-1, mesh.pos[Y].size-1) ) )
 
+        self._materials = copy.deepcopy(materials)
+        self.mu = np.zeros((mesh.pos[X].size, mesh.pos[Y].size))
+        self.epsilon = np.zeros((mesh.pos[X].size, mesh.pos[Y].size))
+        for material in self._materials:
+            box = self._mesh.elemIdToBox(material["elemId"])
+            id = mesh.toIdx(box)
+            self.mu[id[L][X]:id[U][X], id[L][Y]:id[U][Y]] += material["mu_rel"]
+            self.epsilon[id[L][X]:id[U][X], id[L][Y]:id[U][Y]] += material["epsilon_rel"]
 
     def _dt(self):
         return self.options["cfl"] * min(self._mesh.steps()) / math.sqrt(2.0)  
 
     def timeStep(self):
-        return self._dt() / sp.speed_of_light
+        return self._dt() / sp.speed_of_light # In SI units
 
     def getProbes(self):
         res = self._probes
@@ -99,9 +144,9 @@ class Solver:
         e = (ex, ey)
 
         (dX, dY) = self._mesh.steps()
-        A = dX * dY * self._material["epsilon"]
-        eNew[X][:,1:-1] = e[X][:,1:-1] + dt/A*dX * (h[:,1:] - h[:,:-1])
-        eNew[Y][1:-1,:] = e[Y][1:-1,:] - dt/A*dY * (h[1:,:] - h[:-1,:])
+        A = dX * dY * np.array([self.epsilon[:-1,1:-1], self.epsilon[1:-1,:-1]], dtype=object) 
+        eNew[X][:,1:-1] = e[X][:,1:-1] + dt/A[X]*dX * (h[:,1:] - h[:,:-1])
+        eNew[Y][1:-1,:] = e[Y][1:-1,:] - dt/A[Y]*dY * (h[1:,:] - h[:-1,:])
 
         # Source terms
         for source in self._sources:
@@ -112,73 +157,81 @@ class Solver:
                     break
 
                 elif magnitude["type"] == "TMgauss":
-                    mode = source["mode"]
-                    freq = source["frequency"]
+                    id = source["index"]
+
+                    epsilon = self.epsilon[id[L][X], id[L][Y]]
+                    mu = self.mu[id[L][X]:id[U][X], id[L][Y]:id[U][Y]]
 
                     c0 = sp.speed_of_light
+
                     delay  = c0 * magnitude["gaussianDelay"]
                     spread = c0 * magnitude["gaussianSpread"]
-                    id = source["index"]
+                    
+                    n = source["mode"]
+                    freq = source["frequency"] * 2 * np.pi / c0
                     intens = magnitude["sinIntensity"]
-
-                    epsilon = self._material["epsilon"]
-                    mu = self._material["mu"]
-
                     lon_y = (id[U][Y] - id[L][Y]) * dY
-                    kc = mode*np.pi/lon_y
-                    beta = np.sqrt(freq**2*mu*epsilon - kc**2)
-
+                    # fc = n / (2 * lon_y * np.sqrt(mu * sp.mu_0 * epsilon * sp.epsilon_0))
+                    # if source["frequency"] < fc: 
+                    #     print("Warning: Selected frequency is below cut off frequency")
 
                     if initEx == 1:
                         (xEx, yEx) = self._mesh.IdxToPos(id,self.posEx)
-                        xEx = xEx[...,None]
-                        yEx = yEx[None,...]
+                        NxEx = len(xEx)
+                        NyEx = len(yEx)
+                        xEx = np.tile(xEx[...,None], (1, NyEx))
+                        yEx = np.tile(yEx, (NxEx, 1))
                         tEx = t - dt/2
                         eNew[X][id[L][X]:id[U][X], id[L][Y]:id[U][Y]] += \
-                         np.matmul((np.cos(freq*tEx)* np.cos(beta*xEx) - np.sin(freq*tEx) * np.sin(beta*xEx)), \
-                         np.sin(kc * yEx)) * intens * gaussian(tEx, delay, spread)
+                          TMn_Ex(tEx, xEx, yEx, n, intens, freq, mu, epsilon, lon_y) \
+                              * gaussian(tEx, delay, spread)
 
                     if initEy == 1:
                         (xEy, yEy) = self._mesh.IdxToPos(id,self.posEy)
-                        xEy = xEy[...,None]
-                        yEy = yEy[None,...]
+                        NxEy = len(xEy)
+                        NyEy = len(yEy)
+                        xEy = np.tile(xEy[...,None], (1, NyEy))
+                        yEy = np.tile(yEy, (NxEy, 1))
                         tEy = t - dt/2
                         eNew[Y][id[L][X]:id[U][X], id[L][Y]:id[U][Y]] += \
-                         np.matmul((np.sin(freq*tEy) * np.cos(beta*xEy) + np.sin(beta*xEy) * np.cos(freq*tEy)), \
-                         np.cos(kc *yEy)) * intens * beta/kc * gaussian(tEy, delay, spread) 
+                         TMn_Ey(t, xEy, yEy, n, intens, freq, mu, epsilon, lon_y) \
+                         * gaussian(tEy, delay, spread) 
 
                 elif magnitude["type"] == "TMstep":
-                    mode = source["mode"]
-                    freq = source["frequency"]
-
                     id = source["index"]
+
+                    epsilon = self.epsilon[id[L][X]:id[U][X], id[L][Y]:id[U][Y]]
+                    mu = self.mu[id[L][X]:id[U][X], id[L][Y]:id[U][Y]]
+
+                    c0 = sp.speed_of_light
+
+                    n = source["mode"]
+                    freq = source["frequency"] * 2 * np.pi / c0
                     intens = magnitude["sinIntensity"]
                     tlim = magnitude["stepTimeLimit"]
-
-                    epsilon = self._material["epsilon"]
-                    mu = self._material["mu"]
-
                     lon_y = (id[U][Y] - id[L][Y]) * dY
-                    kc = mode*np.pi/lon_y
-                    beta = np.sqrt(freq**2*mu*epsilon - kc**2)
 
                     if initEx == 1:
                         (xEx, yEx) = self._mesh.IdxToPos(id,self.posEx)
-                        xEx = xEx[...,None]
-                        yEx = yEx[None,...]
+                        NxEx = len(xEx)
+                        NyEx = len(yEx)
+                        xEx = np.tile(xEx[...,None], (1, NyEx))
+                        yEx = np.tile(yEx, (NxEx, 1))
                         tEx = t + dt/2
                         eNew[X][id[L][X]:id[U][X], id[L][Y]:id[U][Y]] += \
-                         np.matmul((np.cos(freq*tEx)* np.cos(beta*xEx) - np.sin(freq*tEx) * np.sin(beta*xEx)), \
-                         np.sin(kc * yEx)) *intens * step(tEx, tlim * dt)
+                         TMn_Ex(tEx, xEx, yEx, n, intens, freq, mu, epsilon, lon_y) \
+                         * step(tEx, tlim * dt)
 
                     if initEy == 1:
                         (xEy, yEy) = self._mesh.IdxToPos(id,self.posEy)
-                        xEy = xEy[...,None]
-                        yEy = yEy[None,...]
+                        NxEy = len(xEy)
+                        NyEy = len(yEy)
+                        xEy = np.tile(xEy[...,None], (1, NyEy))
+                        yEy = np.tile(yEy, (NxEy, 1))
                         tEy = t + dt/2
                         eNew[Y][id[L][X]:id[U][X], id[L][Y]:id[U][Y]] += \
-                         np.matmul((np.sin(freq*tEy) * np.cos(beta*xEy) + np.sin(beta*xEy) * np.cos(freq*tEy)), \
-                         np.cos(kc *yEy)) * intens * beta/kc * step(tEy, tlim * dt)
+                         TMn_Ey(tEy, xEy, yEy, n, intens, freq, mu, epsilon, lon_y) \
+                         * step(tEy, tlim * dt)
                      
                 else:
                     raise ValueError(\
@@ -232,7 +285,7 @@ class Solver:
         (ex, ey, h) = self.old.get()
         
         (dX, dY) = self._mesh.steps()
-        A = dX * dY * self._material["mu"]
+        A = dX * dY * self.mu[:-1,:-1]
               
         hNew[:,:] = h[:,:] \
                      - dt/A * dY * ey[1:,  :] \
@@ -246,6 +299,7 @@ class Solver:
             if initHz == 1:
                 if source["type"] == "dipole":
                     magnitude = source["magnitude"]
+
                     if magnitude["type"] == "gaussian":
                         c0 = sp.speed_of_light
                         delay  = c0 * magnitude["gaussianDelay"]
@@ -255,56 +309,58 @@ class Solver:
                          gaussian(t, delay, spread)*dt
 
                     elif magnitude["type"] == "TMgauss":
-                        mode = source["mode"]
-                        freq = source["frequency"]
+                        id = source["index"]
+
+                        epsilon = self.epsilon[id[L][X]:id[U][X], id[L][Y]:id[U][Y]]
+                        mu = self.mu[id[L][X]:id[U][X], id[L][Y]:id[U][Y]]
 
                         c0 = sp.speed_of_light
+
                         delay  = c0 * magnitude["gaussianDelay"]
                         spread = c0 * magnitude["gaussianSpread"]
-                        id = source["index"]
+                    
+                        n = source["mode"]
+                        freq = source["frequency"] * 2 * np.pi / c0
                         intens = magnitude["sinIntensity"]
-
-                        epsilon = self._material["epsilon"]
-                        mu = self._material["mu"]
-
                         lon_y = (id[U][Y] - id[L][Y]) * dY
-                        kc = mode*np.pi/lon_y
-                        beta = np.sqrt(freq**2*mu*epsilon - kc**2)
 
                         (xHz, yHz) = self._mesh.IdxToPos(id,self.posHz)
-                        xHz = xHz[...,None]
-                        yHz = yHz[None,...]
+                        NxHz = len(xHz)
+                        NyHz = len(yHz)
+                        xHz = np.tile(xHz[...,None], (1, NyHz))
+                        yHz = np.tile(yHz, (NxHz, 1))
                         hNew[id[L][X]:id[U][X], id[L][Y]:id[U][Y]] += \
-                         np.matmul((-np.sin(freq*t)*np.cos(beta*xHz) - np.sin(beta*xHz)*np.cos(freq*t)), \
-                         np.cos(kc * yHz)) * intens * freq*epsilon/kc * gaussian(t, delay, spread)
+                         TMn_Hz(t, xHz, yHz, n, intens, freq, mu, epsilon, lon_y) \
+                         * gaussian(t, delay, spread)
 
                     elif magnitude["type"] == "TMstep":
-                        mode = source["mode"]
-                        freq = source["frequency"]
-
                         id = source["index"]
+
+                        epsilon = self.epsilon[id[L][X]:id[U][X], id[L][Y]:id[U][Y]]
+                        mu = self.mu[id[L][X]:id[U][X], id[L][Y]:id[U][Y]]
+
+                        c0 = sp.speed_of_light
+
+                        n = source["mode"]
+                        freq = source["frequency"] * 2 * np.pi / c0
                         intens = magnitude["sinIntensity"]
                         tlim = magnitude["stepTimeLimit"]
-
-                        epsilon = self._material["epsilon"]
-                        mu = self._material["mu"]
-
                         lon_y = (id[U][Y] - id[L][Y]) * dY
-                        kc = mode*np.pi/lon_y
-                        beta = np.sqrt(freq**2*mu*epsilon - kc**2)
 
                         (xHz, yHz) = self._mesh.IdxToPos(id,self.posHz)
-                        xHz = xHz[...,None]
-                        yHz = yHz[None,...]
+                        NxHz = len(xHz)
+                        NyHz = len(yHz)
+                        xHz = np.tile(xHz[...,None], (1, NyHz))
+                        yHz = np.tile(yHz, (NxHz, 1))
                         hNew[id[L][X]:id[U][X], id[L][Y]:id[U][Y]] += \
-                         np.matmul((-np.sin(freq*t)*np.cos(beta*xHz) - np.sin(beta*xHz)*np.cos(freq*t)), \
-                         np.cos(kc * yHz)) * intens * freq*epsilon/kc * step(t, tlim * dt)
+                         TMn_Hz(t, xHz, yHz, n, intens, freq, mu, epsilon, lon_y) \
+                         * step(t, tlim * dt) * np.sqrt(sp.mu_0/sp.epsilon_0)
                      
+                    else:
+                        raise ValueError(\
+                        "Invalid source magnitude type: " + magnitude["type"])
                 else:
-                    raise ValueError(\
-                    "Invalid source magnitude type: " + magnitude["type"])
-            else:
-                raise ValueError("Invalid source type: " + source["type"])
+                    raise ValueError("Invalid source type: " + source["type"])
         
         h[:] = hNew[:]
 
@@ -319,7 +375,8 @@ class Solver:
                 idx = p["indices"]
                 values = np.zeros(tuple(idx[U]-idx[L]))
                 values[:,:] = \
-                    self.old.hz[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ]
+                    self.old.hz[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ] \
+                    / np.sqrt(sp.mu_0/sp.epsilon_0)
                 
                 
                 # Electric field at magnetic field positions

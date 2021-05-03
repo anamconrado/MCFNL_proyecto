@@ -2,8 +2,10 @@
     "_format": "pyfdtd2d",
     
     "options": {
+
         "finalTime": 60e-9,
-        "cfl": 0.5
+        "cfl": 0.8
+
     },
 
     "coordinates": [
@@ -18,7 +20,12 @@
         [ 5.5,  0.0],
         [ 5.55,  2.5],
         [ 2.5,  0.0],
-        [ 2.55,  2.5]
+        [ 2.55,  2.5],
+
+        [ 0.0,  0.0], 
+        [ 4.0,  5.0],
+        [ 4.0,  0.0], 
+        [ 8.0,  5.0]
     ],
 
     "elements": [
@@ -27,7 +34,9 @@
         [2, 3],
         [4, 5],
         [6, 7],
-        [8, 9]
+        [8, 9],
+        [10, 11],
+        [12, 13]
     ],
 
     "grid": {   
@@ -39,17 +48,25 @@
         ]
     },
 
-    "material":{
-        "epsilon": 1,
-        "mu": 1
-    },
+    "materials":[
+        {
+            "elemId": 6,
+            "epsilon_rel": 3,
+            "mu_rel": 3
+        },
+        {
+            "elemId": 7,
+            "epsilon_rel": 1.0,
+            "mu_rel": 1.0
+        }
+    ],
 
     "sources": [
         {
             "type": "dipole", 
             "direction": [1.0, 0.0, 0.0],
-            "fields": [0, 0, 1],
-            "frequency": 0.7,
+            "fields": [0, 1, 1],
+            "frequency": 3.5e7,
             "mode": 1,
             "magnitude": {
                 "type": "TMgauss",
