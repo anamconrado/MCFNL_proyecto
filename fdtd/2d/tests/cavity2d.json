@@ -2,23 +2,23 @@
     "_format": "pyfdtd2d",
     
     "options": {
-        "finalTime": 40e-9,
+        "finalTime": 60e-9,
         "cfl": 0.8
     },
 
     "coordinates": [
         [ 0.0,  0.0], 
-        [ 10.0,  5.0],
+        [ 8.0,  5.0],
         [ 7.0,  0.0],
         [ 7.2, 5.0],
 
 
         [6.5, 0.0],
         [6.55, 2.5],
-        [ 4.5,  0.0],
-        [ 4.55,  2.5],
-        [ 0.5,  0.0],
-        [ 0.55,  2.5]
+        [ 5.5,  0.0],
+        [ 5.55,  2.5],
+        [ 2.5,  0.0],
+        [ 2.55,  2.5]
     ],
 
     "elements": [
@@ -48,7 +48,7 @@
         {
             "type": "dipole", 
             "direction": [1.0, 0.0, 0.0],
-            "fields": [1, 1, 1],
+            "fields": [0, 0, 1],
             "frequency": 0.7,
             "mode": 1,
             "magnitude": {
@@ -75,10 +75,10 @@
         "port_inc": {
             "elemId": 3
         },
-        "port_trans": {
+        "port_refl": {
             "elemId": 4
         },
-        "port_refl": {
+        "port_trans": {
             "elemId": 5
         }
     }

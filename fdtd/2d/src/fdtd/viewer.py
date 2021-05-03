@@ -52,7 +52,7 @@ class View:
             ports[i][0].plot(list(map(lambda i: i*(10**9), self.data['time'])), measures.Ports(ports[i][1]))
             ports[i][0].set_title(f"Port {ports[i][1]}")
             ports[i][0].set_ylabel("Power per length")
-        ax3.set_xlabel("Time (ns")
+        ax3.set_xlabel("Time (ns)")
         fig.subplots_adjust(left=None, bottom=0.1, right=None, top=0.85, wspace=None, hspace=0.5)
         fig.savefig("Puertos.png")
 
@@ -124,6 +124,6 @@ class View:
         anim.controls()
 
         # Change if windows.
-        #anim.save_gif('2d/videos/allfselds')
-        anim.save('2d/videos/allfields.avi')
+        # anim.save_gif('2d/videos/allfselds')
+        anim.save('videos/allfields.avi')
         plt.show()                         

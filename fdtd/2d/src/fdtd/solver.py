@@ -201,7 +201,7 @@ class Solver:
                  eNew[xy][lx:ux,ly:uy] = 0.0
             
             elif isinstance(bound, self._mesh.BoundMUR):
-                c0 = sp.speed_of_light
+                c0 = 1 # sp.speed_of_light
                 dx = self._mesh.steps()
                 if xy == Y: # Left and right: we change Ey   
                     if lx == 0: # Left

@@ -8,6 +8,7 @@ from fdtd.mesh import Mesh
 from fdtd.solver import Solver
 from fdtd.viewer import View
 from fdtd.measures import Measures
+from fdtd.frecuency_analysis import Freq_analysis
 
 print("=== Python FDTD 2D")
 
@@ -36,6 +37,9 @@ print('--- Measuring')
 measures = Measures(mesh, solver.getProbes(), data["measures"], data["material"])
 R = measures.R_f()
 T = measures.T_f()
+
+print('--- Frecuency analysis')
+Freq_analysis(measures, solver.getProbes(), data)
 
 print('--- Creating video')
 view = View(solver.getProbes(),measures.Ports) # Start of an object of class View
