@@ -4,7 +4,7 @@ import copy
 from fdtd.common import X, Y, L, U
 
 class Measures:
-    def __init__(self, mesh, data, measures, material):
+    def __init__(self, mesh, data, measures):
         self._mesh = copy.deepcopy(mesh)
         self._data = copy.deepcopy(data[0])
         self._measures = copy.deepcopy(measures)
@@ -17,11 +17,6 @@ class Measures:
         self.port_refl = self._measures['port_refl']
         self.box_refl = self._mesh.elemIdToBox(self.port_refl["elemId"])
         self.ids_refl = mesh.toIdx(self.box_refl)
-
-        self._material = copy.deepcopy(material)
-        epsilon = self._material["epsilon"]
-        mu = self._material["mu"]
-        self.eta = np.sqrt(mu/epsilon)
 
 
     """
