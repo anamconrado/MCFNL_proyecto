@@ -128,6 +128,7 @@ class Solver:
                     kc = mode*np.pi/lon_y
                     beta = np.sqrt(freq**2*mu*epsilon - kc**2)
 
+
                     if initEx == 1:
                         (xEx, yEx) = self._mesh.IdxToPos(id,self.posEx)
                         xEx = xEx[...,None]

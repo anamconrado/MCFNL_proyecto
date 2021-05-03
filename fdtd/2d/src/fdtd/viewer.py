@@ -38,7 +38,7 @@ class View:
         """
 
 
-    def plots(self, port, measures):
+    def plots(self, measures):
         """ Plots the input of a port defined in the measures module:
         Inputs:
         | - measures: Object of Measures, give access to class functions as Ports.
@@ -46,12 +46,15 @@ class View:
         Output:
         | - Plot of input port data at all times.
         """
-        if port != (0 or 1 or  2): raise Exception("port must be 0,1 o 2") 
-        plt.plot(list(map(lambda i: i*(10**9), self.data['time'])), measures.Ports(port))
-        plt.title(f"{port} Port")
-        plt.xlabel("Time (ns)")
-        plt.ylabel("Power per length")
-        plt.savefig("Puerto {}.png".format(port))
+        fig, (ax1, ax2, ax3) = plt.subplots(3,1)
+        ports = {"0":[ax1,0] ,"1":[ax2,1] ,"2":[ax3,2] }
+        for i in ports:
+            ports[i][0].plot(list(map(lambda i: i*(10**9), self.data['time'])), measures.Ports(ports[i][1]))
+            ports[i][0].set_title(f"Port {ports[i][1]}")
+            ports[i][0].set_ylabel("Power per length")
+        ax3.set_xlabel("Time (ns")
+        fig.subplots_adjust(left=None, bottom=0.1, right=None, top=0.85, wspace=None, hspace=0.5)
+        fig.savefig("Puertos.png")
 
     def generate_video(self, fields = "magnetic"):
         """ Generates a visualization of the dynamics of the input field and writes a mp4
