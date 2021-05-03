@@ -2,8 +2,10 @@
     "_format": "pyfdtd2d",
     
     "options": {
-        "finalTime": 20e-9,
+
+        "finalTime": 60e-9,
         "cfl": 0.8
+
     },
 
     "coordinates": [

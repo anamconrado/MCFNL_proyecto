@@ -8,7 +8,7 @@ from fdtd.mesh import Mesh
 from fdtd.solver import Solver
 from fdtd.viewer import View
 from fdtd.measures import Measures
-from fdtd.frecuency_analysis import Freq_analysis
+from fdtd.frecuency_analysis import Fourier_trans
 
 print("=== Python FDTD 2D")
 
@@ -39,12 +39,15 @@ R = measures.R_f()
 T = measures.T_f()
 
 print('--- Frecuency analysis')
-Freq_analysis(measures, solver.getProbes(), data)
+results_freq = Fourier_trans(measures, solver.getProbes(), data)
 
-print('--- Creating video')
+print('--- Plotting')
 view = View(solver.getProbes(),measures.Ports) # Start of an object of class View
-view.plots(measures)
+view.Power_plots(measures)
+view.Frequency_plots(results_freq[0])
+view.Coefficients_plot(results_freq)
 view.generate_video('all')
+
 
 # print('--- Writing output files')
 # (folder, file) = os.path.split(inputFilename)
