@@ -64,9 +64,9 @@ class View:
         for i in axes:
             axes[i].plot(data[i][3][0], data[i][3][1])   
         fig.suptitle("Fourier Transforms") 
-        ax1.set_title("Port 0")
-        ax2.set_title("Port 1")
-        ax3.set_title("Port 2")
+        ax1.set_title("Port 0 - Incident signal")
+        ax2.set_title("Port 1 - Reflected signal")
+        ax3.set_title("Port 2 - Transmitted signal")
         ax3.set_xlabel("Frequencies (GHz)")
         fig.subplots_adjust(left=None, bottom=0.1, right=None, top=0.85, wspace=None, hspace=0.5)        
         fig.savefig("frequencies.png")
@@ -78,11 +78,11 @@ class View:
         T = data[1][1]
 
         fig, (ax1, ax2) = plt.subplots(2,1)
-        ax1.plot(means2(data_ports["0"][3][0]),T)
+        ax1.plot(data_ports["0"][3][0],T)
         ax1.set_title("Transmission coefficient")
         ax1.grid()
 
-        ax2.plot(means2(data_ports["0"][3][0]),R)
+        ax2.plot(data_ports["0"][3][0],R)
         ax2.set_title("Reflexion coefficient")
         ax2.grid()
 

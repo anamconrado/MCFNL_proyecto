@@ -1,7 +1,7 @@
 import numpy as np
 import copy
 import matplotlib.pyplot as plt
-from scipy.fft import fft, fftfreq
+from scipy.fft import rfft, fftfreq
 from fdtd.common import X, Y, L, U
 
 def means2(vec):
@@ -29,9 +29,9 @@ def Fourier_trans(measures,data,data_input):
         "2": [abs(sourceposition - data_input["coordinates"][data_input["elements"][data_input["measures"]["port_trans"]["elemId"]][0]][0])],}
     
     # Port times
-    ports["0"].append([0,10])     # Firsts times at port 0 in ns
-    ports["1"].append([15,25])   # Second times at port 1 in ns
-    ports["2"].append([41,51])   # Firsts times at port 3 in ns
+    ports["0"].append([0,15])     # Firsts times at port 0 in ns
+    ports["1"].append([10,25])   # Second times at port 1 in ns
+    ports["2"].append([40,55])   # Firsts times at port 3 in ns
 
     for i in ports:
         ports[i].append([[],[]]) 
@@ -53,12 +53,12 @@ def Fourier_trans(measures,data,data_input):
     timestep = times[1] - times[0]
     for i in ports.values():
         frequencies = (fftfreq(Nmeasures)/timestep)[:Nmeasures//2]
-        transform = np.abs((fft(i[2][1]))[:Nmeasures//2])
+        transform = np.abs((rfft(i[2][1])))[1:]
         i.append([frequencies, transform] )
 
     # Calculo de coeficientes.
-    R = means2(ports["2"][3][1])/means2(ports["0"][3][1])
-    T = means2(ports["1"][3][1])/means2(ports["0"][3][1])
+    R = ports["2"][3][1]/ports["0"][3][1]
+    T = ports["1"][3][1]/ports["0"][3][1]
 
     return (ports,[R,T])
 
