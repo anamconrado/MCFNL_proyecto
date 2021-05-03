@@ -125,6 +125,6 @@ class Mesh:
         return res
 
     def IdxToPos(self, id, pos):
-        pos = np.array(pos)
+        pos = np.array(pos, dtype=object)
         return [pos[X][id[L][X]:id[U][X]], \
             pos[Y][id[L][Y]:id[U][Y]]] 

@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import animatplot as amp
 import copy
 
+from fdtd.common import X, Y, L, U
+
 def Ztimes(self,t):
     return self.data['values'][t]
 
@@ -13,21 +15,24 @@ class View:
 
     def __init__(self, datos, coeff):
         self.data = copy.deepcopy(datos[0])
-        self.Ntimes = len(self.data['time'])
-        self.Nhzx = len(self.data['values'][0]) # Cantidad de datos en el eje X
-        self.Nhzy = len(self.data['values'][0][0]) # Cantidad de datos en el eje Y
+        #self.Ntimes = len(self.data['time'])
+        #self.Nhzx = len(self.data['values'][0]) # Cantidad de datos en el eje X
+        #self.Nhzy = len(self.data['values'][0][0]) # Cantidad de datos en el eje Y
      
 
         # Z-component magnetic field (Hz) grid
           # Fields origen
-        self.data['mesh']['originh'] = [self.data['mesh']['origin'][0] + self.data['mesh']['steps'][0]/2, \
-            self.data['mesh']['origin'][1] + self.data['mesh']['steps'][0]/2]
+        # self.data['mesh']['originh'] = [self.data['mesh']['origin'][0] + self.data['mesh']['steps'][0]/2, \
+        #     self.data['mesh']['origin'][1] + self.data['mesh']['steps'][0]/2]
 
-        self.x_axis = [self.data['mesh']['originh'][0] + i*self.data['mesh']['steps'][0] \
-            for i in range(0,self.Nhzx)]
+        # self.x_axis = [self.data['mesh']['originh'][0] + i*self.data['mesh']['steps'][0] \
+        #     for i in range(0,self.Nhzx)]
         
-        self.y_axis = [self.data['mesh']['originh'][1] + i*self.data['mesh']['steps'][1] \
-            for i in range(0,self.Nhzy)]
+        # self.y_axis = [self.data['mesh']['originh'][1] + i*self.data['mesh']['steps'][1] \
+        #     for i in range(0,self.Nhzy)]
+
+        self.x_axis = self.data["mesh"]["posHz"][X]
+        self.y_axis = self.data["mesh"]["posHz"][Y]
 
         """
         # Grid de campo eléctrico Ex:
@@ -124,6 +129,6 @@ class View:
         anim.controls()
 
         # Change if windows.
-        # anim.save_gif('2d/videos/allfselds')
-        anim.save('videos/allfields.avi')
+        anim.save_gif('videos/allfields')
+        # anim.save('videos/allfields.avi')
         plt.show()                         
