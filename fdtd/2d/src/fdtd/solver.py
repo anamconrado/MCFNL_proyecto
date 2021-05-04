@@ -181,7 +181,7 @@ class Solver:
                         NyEx = len(yEx)
                         xEx = np.tile(xEx[...,None], (1, NyEx))
                         yEx = np.tile(yEx, (NxEx, 1))
-                        tEx = t - dt/2
+                        tEx = t + dt/2
                         eNew[X][id[L][X]:id[U][X], id[L][Y]:id[U][Y]] += \
                           TMn_Ex(tEx, xEx, yEx, n, intens, freq, mu, epsilon, lon_y) \
                               * gaussian(tEx, delay, spread)
@@ -192,7 +192,7 @@ class Solver:
                         NyEy = len(yEy)
                         xEy = np.tile(xEy[...,None], (1, NyEy))
                         yEy = np.tile(yEy, (NxEy, 1))
-                        tEy = t - dt/2
+                        tEy = t + dt/2
                         eNew[Y][id[L][X]:id[U][X], id[L][Y]:id[U][Y]] += \
                          TMn_Ey(t, xEy, yEy, n, intens, freq, mu, epsilon, lon_y) \
                          * gaussian(tEy, delay, spread) 
@@ -331,7 +331,7 @@ class Solver:
                         yHz = np.tile(yHz, (NxHz, 1))
                         hNew[id[L][X]:id[U][X], id[L][Y]:id[U][Y]] += \
                          TMn_Hz(t, xHz, yHz, n, intens, freq, mu, epsilon, lon_y) \
-                         * gaussian(t, delay, spread)
+                         * gaussian(t, delay, spread) #* np.sqrt(sp.mu_0/sp.epsilon_0)
 
                     elif magnitude["type"] == "TMstep":
                         id = source["index"]

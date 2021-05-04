@@ -83,11 +83,11 @@ class View:
         T = data[1][1]
 
         fig, (ax1, ax2) = plt.subplots(2,1)
-        ax1.plot(data_ports["0"][3][0],T)
+        ax1.plot(data_ports["0"][3][0][0:100],T[0:100])
         ax1.set_title("Transmission coefficient")
         ax1.grid()
 
-        ax2.plot(data_ports["0"][3][0],R)
+        ax2.plot(data_ports["0"][3][0][0:100],R[0:100])
         ax2.set_title("Reflexion coefficient")
         ax2.grid()
 
@@ -163,6 +163,6 @@ class View:
         anim.controls()
 
         # Change if windows.
-        anim.save_gif('videos/allfields')
-        # anim.save('videos/allfields.avi')
+        # anim.save_gif('videos/allfields')
+        anim.save('videos/allfields.avi')
         plt.show()                         

@@ -29,9 +29,9 @@ def Fourier_trans(measures,data,data_input):
         "2": [abs(sourceposition - data_input["coordinates"][data_input["elements"][data_input["measures"]["port_trans"]["elemId"]][0]][0])],}
     
     # Port times
-    ports["0"].append([0,15])     # Firsts times at port 0 in ns
-    ports["1"].append([10,25])   # Second times at port 1 in ns
-    ports["2"].append([40,55])   # Firsts times at port 3 in ns
+    ports["0"].append([1,11])    # Firsts times at port 0 in ns
+    ports["1"].append([19,29])   # Second times at port 1 in ns
+    ports["2"].append([20,30])   # Firsts times at port 3 in ns
 
     for i in ports:
         ports[i].append([[],[]]) 

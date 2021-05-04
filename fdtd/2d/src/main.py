@@ -35,8 +35,6 @@ solver.solve(data["options"]["finalTime"])
 
 print('--- Measuring')
 measures = Measures(mesh, solver.getProbes(), data["measures"])
-R = measures.R_f()
-T = measures.T_f()
 
 print('--- Frecuency analysis')
 results_freq = Fourier_trans(measures, solver.getProbes(), data)

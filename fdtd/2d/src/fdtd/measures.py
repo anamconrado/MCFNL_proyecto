@@ -30,10 +30,10 @@ class Measures:
         if n == 0:
             ids =  self.ids_inc
             x_width = float(ids[U][X]-ids[L][X])
-        elif n == 2:
+        elif n == 1:
             ids = self.ids_refl
             x_width = float(ids[U][X]-ids[L][X])
-        elif n == 1:
+        elif n == 2:
             ids = self.ids_trans  
             x_width = float(ids[U][X]-ids[L][X])
         else: raise Exception("0, 1 and 2 ports from left to right")
@@ -56,7 +56,6 @@ class Measures:
         self.Hz_refl = np.array([np.array([np.array([k for k in j[self.ids_refl[L][Y]:self.ids_refl[U][Y]]]) for j in i[self.ids_refl[L][X]: self.ids_refl[U][X]]]) for i in self._data["values"]])
         self.I_refl = self.eta * np.sum(np.sum(np.power(self.Hz_refl, 2), axis = 1), axis = 1)               
         return self.I_refl 
-    """
 
     def R_f(self):
         # R = self.I_refl_f()[1:] / self.I_inc_f()[1:]
@@ -67,3 +66,4 @@ class Measures:
         # T = self.I_trans_f()[1:] / self.I_inc_f()[1:]
         T = self.Ports(2)[1:]/self.Ports(0)[1:]
         return T
+    """
