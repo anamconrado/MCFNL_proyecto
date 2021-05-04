@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import animatplot as amp
 import copy
-from fdtd.frecuency_analysis import means2
 
 from fdtd.common import X, Y, L, U
 
@@ -16,41 +15,16 @@ class View:
 
     def __init__(self, datos, coeff):
         self.data = copy.deepcopy(datos[0])
-        #self.Ntimes = len(self.data['time'])
-        #self.Nhzx = len(self.data['values'][0]) # Cantidad de datos en el eje X
-        #self.Nhzy = len(self.data['values'][0][0]) # Cantidad de datos en el eje Y
-     
-
-        # Z-component magnetic field (Hz) grid
-          # Fields origen
-        # self.data['mesh']['originh'] = [self.data['mesh']['origin'][0] + self.data['mesh']['steps'][0]/2, \
-        #     self.data['mesh']['origin'][1] + self.data['mesh']['steps'][0]/2]
-
-        # self.x_axis = [self.data['mesh']['originh'][0] + i*self.data['mesh']['steps'][0] \
-        #     for i in range(0,self.Nhzx)]
-        
-        # self.y_axis = [self.data['mesh']['originh'][1] + i*self.data['mesh']['steps'][1] \
-        #     for i in range(0,self.Nhzy)]
-
         self.x_axis = self.data["mesh"]["posHz"][X]
         self.y_axis = self.data["mesh"]["posHz"][Y]
 
-        """
-        # Grid de campo eléctrico Ex:
-        self.data['mesh']["origine"] = [self.data['mesh']["origine"][0]\
-             + self.data['mesh']['steps']/2, self.data['mesh']["origine"][1]] 
-        self.exX_axis = [self.data['mesh']['origin'][0] + i*self.data['mesh']['steps'][0] \
-            for i in range(0,self.Nhx)]
-        """
-
 
     def Power_plots(self, measures):
-        """ Plots the input of a port defined in the measures module:
-        Inputs:
+        """ Plots the power of ports defined in the measures module:
+        | Inputs:
         | - measures: Object of Measures, give access to class functions as Ports.
-        | - port: Must be 0,1 or 2: indicates the port whose data will be plotted.
-        Output:
-        | - Plot of input port data at all times.
+        | Output:
+        | - Plots.
         """
         fig, (ax1, ax2, ax3) = plt.subplots(3,1)
         ports = {"0":[ax1,0] ,"1":[ax2,1] ,"2":[ax3,2] }
@@ -62,12 +36,18 @@ class View:
         fig.subplots_adjust(left=None, bottom=0.1, right=None, top=0.85, wspace=None, hspace=0.5)
         fig.savefig("Puertos.png")
 
-    def Frequency_plots(self,data):
+    def Frequency_plots(self,measures):
+        """ Plots the Fourier transform of the ports' power signals.
+        | Inputs:
+        | - measures: Object of Measures, give access to the Fourier transform of the ports' powers.
+        | Output:
+        | - Plots.
+        """
         # Representación
         fig, (ax1, ax2, ax3) = plt.subplots(3,1)
         axes = {"0": ax1,"1": ax2, "2": ax3}
         for i in axes:
-            axes[i].plot(data[i][3][0], data[i][3][1])   
+            axes[i].plot(measures[i][3][0], measures[i][3][1])   
         fig.suptitle("Fourier Transforms") 
         ax1.set_title("Port 0 - Incident signal")
         ax2.set_title("Port 1 - Reflected signal")
@@ -78,16 +58,22 @@ class View:
 
 
     def Coefficients_plot(self,data):
+        """ Plots the reflexion and transmission coefficients as functions of frequency.
+        | Inputs:
+        | - data: ports' lists following format of "frequency_analysis" module.
+        | Output:
+        | - Plots.
+        """
         data_ports = data[0]
         R = data[1][0]
         T = data[1][1]
 
         fig, (ax1, ax2) = plt.subplots(2,1)
-        ax1.plot(data_ports["0"][3][0][0:100],T[0:100])
+        ax1.plot(data_ports["0"][3][0],T)
         ax1.set_title("Transmission coefficient")
         ax1.grid()
 
-        ax2.plot(data_ports["0"][3][0][0:100],R[0:100])
+        ax2.plot(data_ports["0"][3][0],R)
         ax2.set_title("Reflexion coefficient")
         ax2.grid()
 
@@ -95,12 +81,11 @@ class View:
         fig.subplots_adjust(left=None, bottom=0.1, right=None, top=0.85, wspace=None, hspace=0.5)
         fig.savefig("Coefficients.png")
 
-    def generate_video(self, fields = "magnetic"):
-        """ Generates a visualization of the dynamics of the input field and writes a mp4
-        video as output:
-        Inputs:
-        | - fields: must be 'magnetic': plots Hz; 'electric': plots de module of the electric
-        |field or 'both': plots both at the same time."""
+    def generate_video(self):
+        """ Generates a visualization of the simulated fields' dynamics. 
+        | Output:
+        | - .avi format video.
+        """
 
         # Creating arrays of indices for x-y axis and time.
         x_ind = range(0,len(self.x_axis))
@@ -114,21 +99,7 @@ class View:
         # Creating a figure for visualization
         fig, (ax1, ax2, ax3) = plt.subplots(3,1)
 
-        fields = {"Ex": ['valuese_x',ax1,[],[]], "Ey": ['valuese_y',ax2,[],[]], "Hz":['values',ax3,[],[]]}
-        for i in fields.values():
-            i[1].set_ylabel('y')
-            
-        fields["Hz"][1].set_xlabel('x')
-        fields["Ex"][1].set_title(r'$ {E_x} $')
-        fields["Ey"][1].set_title(r'$ {E_y} $')
-        fields["Hz"][1].set_title (r'$ H_z $')
-
-
-        for i in fields:
-            field = fields[i][0]
-            fields[i][2] = np.array([np.array([np.array([self.data[field][t][i][j]\
-                for t in t_ind]) for i in x_ind]) for j in y_ind]) 
-
+        # Calculation of min and max of simulated fields.
         dicmaxmins = {"Ex": ['valuese_x', [], []],\
                 "Ey": ['valuese_y', [], []],\
                 "Hz": ['values', [], []]}
@@ -145,9 +116,24 @@ class View:
             dicmaxmins[i][1] = max(dicmaxmins[i][1])
             dicmaxmins[i][2] = min(dicmaxmins[i][2])
 
+        # Animation
+        fields = {"Ex": ['valuese_x',ax1,[],[]], "Ey": ['valuese_y',ax2,[],[]], "Hz":['values',ax3,[],[]]}
+        for i in fields.values():
+            i[1].set_ylabel('y')
+            
+        fields["Hz"][1].set_xlabel('x')
+        fields["Ex"][1].set_title(r'$ {E_x} $')
+        fields["Ey"][1].set_title(r'$ {E_y} $')
+        fields["Hz"][1].set_title (r'$ H_z $')
+
+        for i in fields:
+            field = fields[i][0]
+            fields[i][2] = np.array([np.array([np.array([self.data[field][t][i][j]\
+                for t in t_ind]) for i in x_ind]) for j in y_ind]) 
+
         fig.suptitle(r'${   {E_x}  \ & \  {E_y} \ & \ H_z }$')  
         fig.subplots_adjust(left=None, bottom=0.1, right=None, top=0.85, wspace=None, hspace=0.5)
-        #Animation   
+
         # now we make our blocks
         for i in fields:
             fields[i][3] = amp.blocks.Pcolormesh(X[:,:,0], Y[:,:,0], fields[i][2],

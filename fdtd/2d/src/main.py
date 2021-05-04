@@ -38,13 +38,16 @@ measures = Measures(mesh, solver.getProbes(), data["measures"])
 
 print('--- Frecuency analysis')
 results_freq = Fourier_trans(measures, solver.getProbes(), data)
+print(f"Reflexion coefficient: {results_freq[2][0]}")
+print(f"Transmission coefficient: {results_freq[2][1]}")
+print(f"Sum of coefficients: {results_freq[2][0] + results_freq[2][1]}")
 
 print('--- Plotting')
 view = View(solver.getProbes(),measures.Ports) # Start of an object of class View
 view.Power_plots(measures)
 view.Frequency_plots(results_freq[0])
 view.Coefficients_plot(results_freq)
-view.generate_video('all')
+view.generate_video()
 
 
 # print('--- Writing output files')
