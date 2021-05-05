@@ -5,7 +5,7 @@ import sys
 
 """ Modificado por:
 Elena Torres Lozano,
-Ana Conrado Pérez,
+Ana María Conrado Pérez,
 y Juan José Gálvez Viruet.
 """
 
