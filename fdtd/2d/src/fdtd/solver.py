@@ -5,51 +5,7 @@ import copy
 import time
 
 from fdtd.common import X, Y, L, U
-
-# def TMn_Ex(t, x, y, n, intens, freq, mu, epsilon, d):
-#     kc = n*np.pi/d
-#     beta = np.sqrt(freq**2*mu*epsilon - kc**2)
-#     return np.matmul((np.cos(freq*t)* np.cos(beta*x) - np.sin(freq*t) * np.sin(beta*x)), \
-#      np.sin(kc * y)) * intens
-
-def TMn_Ex(t, x, y, n, intens, freq, mu, epsilon, d):
-    kc = n*np.pi/d
-    beta = np.sqrt((freq**2*mu*epsilon - kc**2).astype(np.complex))
-    return np.real(intens\
-        * np.exp(- 1j* beta * x) * np.sin(kc * y) \
-        * np.exp(1j *freq * t))
-
-# def TMn_Ey(t, x, y, n, intens, freq, mu, epsilon, d):
-#     kc = n*np.pi/d
-#     beta = np.sqrt(freq**2*mu*epsilon - kc**2)
-#     return np.matmul((np.sin(freq*t) * np.cos(beta*x) + np.sin(beta*x) * np.cos(freq*t)), \
-#                          np.cos(kc *y)) * intens * beta / kc 
-
-def TMn_Ey(t, x, y, n, intens, freq, mu, epsilon, d):
-    kc = n*np.pi/d
-    beta = np.sqrt((freq**2*mu*epsilon - kc**2).astype(np.complex))
-    return np.real(- intens * 1j * beta / kc \
-        * np.exp(- 1j* beta * x) * np.cos(kc * y) \
-        * np.exp(1j *freq * t))
-
-# def TMn_Hz(t, x, y, n, intens, freq, mu, epsilon, d):
-#     kc = n*np.pi/d
-#     beta = np.sqrt(freq**2*mu*epsilon - kc**2)
-#     return np.matmul((-np.sin(freq*t)*np.cos(beta*x) - np.sin(beta*x)*np.cos(freq*t)), \
-#                          np.cos(kc * y)) * intens * freq * epsilon / kc
-
-def TMn_Hz(t, x, y, n, intens, freq, mu, epsilon, d):
-    kc = n*np.pi/d
-    beta = np.sqrt((freq**2*mu*epsilon - kc**2).astype(np.complex))
-    return np.real(intens * 1j * freq * epsilon / kc \
-        * np.exp(- 1j* beta * x) * np.cos(kc * y) \
-        * np.exp(1j *freq * t))
-
-def gaussian(x, delay, spread):
-    return np.exp( - ((x-delay)**2 / (2*spread**2)) )
-
-def step(x, xlim):
-    return x<xlim
+from fdtd.sources import TMn_Ex, TMn_Ey, TMn_Hz, gaussian, step, fc_f 
 
 def subsId(id):
     if id is None:
@@ -94,18 +50,6 @@ class Solver:
             p["valuese_x"] = [np.zeros((Nxy[X], Nxy[Y]))]
             p["valuese_y"] = [np.zeros((Nxy[X], Nxy[Y]))]
 
-        # for initial in self._initialCond:
-        #     if initial["type"] == "gaussian":
-        #         position=self._mesh.pos
-        #         values=Solver.movingGaussian(position, 0, \
-        #             sp.speed_of_light,initial["peakPosition"],\
-        #             initial["gaussianAmplitude"], \
-        #             initial["gaussianSpread"] )  
-        #         p["values"]= [values[ids[0]:ids[1]]]
-        #     else:
-        #         raise ValueError(\
-        #         "Invalid initial condition type: " + initial["type"] )
-
         self._sources = copy.deepcopy(sources)
         for source in self._sources:
             box = self._mesh.elemIdToBox(source["elemId"])
@@ -123,14 +67,21 @@ class Solver:
         for material in self._materials:
             box = self._mesh.elemIdToBox(material["elemId"])
             id = mesh.toIdx(box)
-            self.mu[id[L][X]:id[U][X], id[L][Y]:id[U][Y]] += material["mu_rel"]
-            self.epsilon[id[L][X]:id[U][X], id[L][Y]:id[U][Y]] += material["epsilon_rel"]
+            self.mu[id[L][X]:id[U][X], id[L][Y]:id[U][Y]] = material["mu_rel"]
+            self.epsilon[id[L][X]:id[U][X], id[L][Y]:id[U][Y]] = material["epsilon_rel"]
 
     def _dt(self):
+        '''
+        Gives the time step for the fdtd algorithm taking into account the 
+        cfl condition for stability.
+        '''
         return self.options["cfl"] * min(self._mesh.steps()) / math.sqrt(2.0)  
 
     def timeStep(self):
-        return self._dt() / sp.speed_of_light # In SI units
+        '''
+        Gives the time step for the fdtd algorithm In SI units.
+        '''
+        return self._dt() / sp.speed_of_light
 
     def getProbes(self):
         res = self._probes
@@ -153,7 +104,7 @@ class Solver:
             if source["type"] == "dipole":
                 magnitude = source["magnitude"]
                 (initEx, initEy, initHz) = source["fields"]
-                if magnitude["type"] == "gaussian": # No hace nada
+                if magnitude["type"] == "gaussian":
                     break
 
                 elif magnitude["type"] == "TMgauss":
@@ -162,7 +113,7 @@ class Solver:
                     epsilon = self.epsilon[id[L][X], id[L][Y]]
                     mu = self.mu[id[L][X]:id[U][X], id[L][Y]:id[U][Y]]
 
-                    c0 = sp.speed_of_light
+                    c0 = sp.speed_of_light # To change from SI units to algortihm units
 
                     delay  = c0 * magnitude["gaussianDelay"]
                     spread = c0 * magnitude["gaussianSpread"]
@@ -171,9 +122,8 @@ class Solver:
                     freq = source["frequency"] * 2 * np.pi / c0
                     intens = magnitude["sinIntensity"]
                     lon_y = (id[U][Y] - id[L][Y]) * dY
-                    # fc = n / (2 * lon_y * np.sqrt(mu * sp.mu_0 * epsilon * sp.epsilon_0))
-                    # if source["frequency"] < fc: 
-                    #     print("Warning: Selected frequency is below cut off frequency")
+                    
+                    fc_f(n, lon_y, self.mu[:-1,:-1], self.epsilon[:-1,:-1], source["frequency"])
 
                     if initEx == 1:
                         (xEx, yEx) = self._mesh.IdxToPos(id,self.posEx)
@@ -203,13 +153,15 @@ class Solver:
                     epsilon = self.epsilon[id[L][X]:id[U][X], id[L][Y]:id[U][Y]]
                     mu = self.mu[id[L][X]:id[U][X], id[L][Y]:id[U][Y]]
 
-                    c0 = sp.speed_of_light
+                    c0 = sp.speed_of_light # To change from SI units to algortihm units
 
                     n = source["mode"]
                     freq = source["frequency"] * 2 * np.pi / c0
                     intens = magnitude["sinIntensity"]
                     tlim = magnitude["stepTimeLimit"]
                     lon_y = (id[U][Y] - id[L][Y]) * dY
+
+                    fc_f(n, lon_y, self.mu[:-1,:-1], self.epsilon[:-1,:-1], source["frequency"])
 
                     if initEx == 1:
                         (xEx, yEx) = self._mesh.IdxToPos(id,self.posEx)
@@ -254,22 +206,21 @@ class Solver:
                  eNew[xy][lx:ux,ly:uy] = 0.0
             
             elif isinstance(bound, self._mesh.BoundMUR):
-                c0 = 1 # sp.speed_of_light
-                dx = self._mesh.steps()
+                c0 = 1 # Light speed in algorithm units
                 if xy == Y: # Left and right: we change Ey   
                     if lx == 0: # Left
                         eNew[Y][0,:] = e[Y][1,:] + \
-                         (c0 * dt - dx[Y])/(c0 * dt + dx[Y])  * (eNew[Y][1,:]-e[Y][0,:])
+                         (c0 * dt - dY)/(c0 * dt + dY)  * (eNew[Y][1,:]-e[Y][0,:])
                     elif lx == -1: # Right
                         eNew[Y][-1,:] = e[Y][-2,:] + \
-                         (c0 * dt - dx[Y])/(c0 * dt + dx[Y])  * (eNew[Y][-2,:]-e[Y][-1,:])
+                         (c0 * dt - dY)/(c0 * dt + dY)  * (eNew[Y][-2,:]-e[Y][-1,:])
                 else: # Up and down: we change Ex   
                     if lx == 0: # Down
                         eNew[X][:,0] = e[X][:,1] + \
-                         (c0 * dt - dx[X])/(c0 * dt + dx[X])  * (eNew[X][:,1]-e[X][:,0])
+                         (c0 * dt - dX)/(c0 * dt + dX)  * (eNew[X][:,1]-e[X][:,0])
                     elif lx == -1: # Up
                         eNew[X][:,-1] = e[X][:,-2] + \
-                         (c0 * dt - dx[X])/(c0 * dt + dx[X])  * (eNew[X][:,-2]-e[X][:,-1])  
+                         (c0 * dt - dX)/(c0 * dt + dX)  * (eNew[X][:,-2]-e[X][:,-1])  
             
             else:
                 raise ValueError("Unrecognized boundary type")
@@ -301,7 +252,7 @@ class Solver:
                     magnitude = source["magnitude"]
 
                     if magnitude["type"] == "gaussian":
-                        c0 = sp.speed_of_light
+                        c0 = sp.speed_of_light # To change from SI units to algorithm units
                         delay  = c0 * magnitude["gaussianDelay"]
                         spread = c0 * magnitude["gaussianSpread"]
                         id = source["index"]
@@ -314,7 +265,7 @@ class Solver:
                         epsilon = self.epsilon[id[L][X]:id[U][X], id[L][Y]:id[U][Y]]
                         mu = self.mu[id[L][X]:id[U][X], id[L][Y]:id[U][Y]]
 
-                        c0 = sp.speed_of_light
+                        c0 = sp.speed_of_light # To change from SI units to algorithm units
 
                         delay  = c0 * magnitude["gaussianDelay"]
                         spread = c0 * magnitude["gaussianSpread"]
@@ -324,6 +275,8 @@ class Solver:
                         intens = magnitude["sinIntensity"]
                         lon_y = (id[U][Y] - id[L][Y]) * dY
 
+                        fc_f(n, lon_y, self.mu[:-1,:-1], self.epsilon[:-1,:-1], source["frequency"])
+
                         (xHz, yHz) = self._mesh.IdxToPos(id,self.posHz)
                         NxHz = len(xHz)
                         NyHz = len(yHz)
@@ -331,7 +284,11 @@ class Solver:
                         yHz = np.tile(yHz, (NxHz, 1))
                         hNew[id[L][X]:id[U][X], id[L][Y]:id[U][Y]] += \
                          TMn_Hz(t, xHz, yHz, n, intens, freq, mu, epsilon, lon_y) \
+<<<<<<< HEAD
+                         * gaussian(t, delay, spread)
+=======
                          * gaussian(t, delay, spread) # * np.sqrt(sp.mu_0/sp.epsilon_0)
+>>>>>>> 71f8005357c2aa2ba1b31db9f1187c163e14246a
 
                     elif magnitude["type"] == "TMstep":
                         id = source["index"]
@@ -339,13 +296,15 @@ class Solver:
                         epsilon = self.epsilon[id[L][X]:id[U][X], id[L][Y]:id[U][Y]]
                         mu = self.mu[id[L][X]:id[U][X], id[L][Y]:id[U][Y]]
 
-                        c0 = sp.speed_of_light
+                        c0 = sp.speed_of_light # To change from SI units to algorithm units
 
                         n = source["mode"]
                         freq = source["frequency"] * 2 * np.pi / c0
                         intens = magnitude["sinIntensity"]
                         tlim = magnitude["stepTimeLimit"]
                         lon_y = (id[U][Y] - id[L][Y]) * dY
+
+                        fc_f(n, lon_y, self.mu[:-1,:-1], self.epsilon[:-1,:-1], source["frequency"])
 
                         (xHz, yHz) = self._mesh.IdxToPos(id,self.posHz)
                         NxHz = len(xHz)
@@ -354,7 +313,7 @@ class Solver:
                         yHz = np.tile(yHz, (NxHz, 1))
                         hNew[id[L][X]:id[U][X], id[L][Y]:id[U][Y]] += \
                          TMn_Hz(t, xHz, yHz, n, intens, freq, mu, epsilon, lon_y) \
-                         * step(t, tlim * dt) * np.sqrt(sp.mu_0/sp.epsilon_0)
+                         * step(t, tlim * dt)
                      
                     else:
                         raise ValueError(\
@@ -362,8 +321,10 @@ class Solver:
                 else:
                     raise ValueError("Invalid source type: " + source["type"])
         
+        # Updating
         h[:] = hNew[:]
 
+    # Results in SI units
     def _updateProbes(self, t):
         for p in self._probes:
             dimensionalTime = t/sp.speed_of_light
@@ -373,44 +334,38 @@ class Solver:
             if writeStep:
                 p["time"].append(dimensionalTime)
                 idx = p["indices"]
+
+                # Calculating magnetic fields values
                 values = np.zeros(tuple(idx[U]-idx[L]))
                 values[:,:] = \
                     self.old.hz[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ] \
                     / np.sqrt(sp.mu_0/sp.epsilon_0)
-                
-                
-                # Electric field at magnetic field positions
-                
+
+                # Calculating electric field values at magnetic field positions
                 # Ex values without first raw    
                 valuesexup = \
                     np.array(self.old.ex[ idx[L][X]:idx[U][X], (idx[L][Y]+1):(idx[U][Y]+1) ])
                 # Ex values without last raw
                 valuesexdown = \
                     np.array(self.old.ex[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ])
-                
-
                 # Mean values, Ex same position as Hz
-                valuesex = (valuesexup + valuesexdown)/2
-                
-                # Electric field at magnetic field positions
-                
+                valuesex = (valuesexup + valuesexdown)/2               
                 # Ey values without first column
                 valueseyright = \
                     self.old.ey[ (idx[L][X]+1):(idx[U][X]+1), idx[L][Y]:idx[U][Y] ]
                 # Ey values without last comlumn
                 valueseyleft = \
                     self.old.ey[ idx[L][X]:idx[U][X], idx[L][Y]:idx[U][Y] ]
-                
-
                 # Mean values, Ey same position as Hz
                 valuesey = (valueseyright + valueseyleft)/2
 
+                # Adding values to the results
                 p["values"].append(values)
                 p["valuese_mod"].append(np.array([list(map(lambda x,y: np.sqrt(x**2 +y**2), valuesex[i], valuesey[i])) for i in range(0,len(valuesex))]))
                 p["valuese_x"].append(valuesex)
                 p["valuese_y"].append(valuesey)
 
-
+    # Solving time loop
     def solve(self, dimensionalFinalTime):
         tic = time.time()
         t = 0.0
@@ -436,7 +391,3 @@ class Solver:
                     numberOfTimeSteps-1, min, sec))
         
         print("    CPU Time: %f [s]" % (time.time() - tic))
-
-    @staticmethod
-    def movingGaussian(x,y,t,c,center,A,spread):
-        return A*np.exp(-(((x-center)-c*t)**2 /(2*spread**2)))
