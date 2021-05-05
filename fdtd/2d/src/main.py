@@ -3,6 +3,12 @@ import argparse
 import os.path
 import sys
 
+""" Modificado por:
+Elena Torres Lozano,
+Ana Conrado Pérez,
+y Juan José Gálvez Viruet.
+"""
+
 # from fdtd.xdmf import Xdmf # To write output file that can be visualize with Paraview
 from fdtd.mesh import Mesh
 from fdtd.solver import Solver
